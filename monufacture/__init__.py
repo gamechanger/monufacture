@@ -6,6 +6,7 @@ factories = {}
 
 
 def factory(name, collection=None, **attrs):
+    """Declares a new named factory with the given attributes."""
     factory = Factory(collection, **attrs)
     factories[name] = factory
 
@@ -31,4 +32,6 @@ def build_list(name, count):
 
 
 def create_list(name, count):
+    """Creates a list of `count` instances of the named document using the 
+    associated factory."""
     return [create(name) for x in range(count)]
