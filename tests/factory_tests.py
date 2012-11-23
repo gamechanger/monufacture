@@ -118,3 +118,12 @@ class TestFactory(unittest.TestCase):
         })
         self.collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)
+
+    def test_create_disabled_when_no_collection_provided(self):
+        factory = Factory(
+            first_name='John',
+            last_name='Smith',
+            age=32)
+
+        with self.assertRaises(IOError):
+            factory.create()

@@ -1,7 +1,7 @@
 from types import FunctionType
 
 class Factory(object):
-    def __init__(self, collection, **attrs):
+    def __init__(self, collection=None, **attrs):
         self.collection = collection
         self.attrs = attrs
 
@@ -37,6 +37,9 @@ class Factory(object):
     def create(self, **overrides):
         """Builds an instance of the document using the same approach as 
         `build` but also persists the document to the database."""
+        if not self.collection:
+            raise IOError("Cannot create an instance when no collection is provided.")
+
         doc = self.build(**overrides)
         doc_id = self.collection.insert(doc)
         return self.collection.find_one(doc_id)
