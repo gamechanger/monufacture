@@ -1,5 +1,5 @@
 from unittest import TestCase
-from monufacture import factory, dependent, sequence, insert, id_of, build, create, build_list, create_list
+from monufacture import factory, dependent, sequence, insert, id_of, build, create, build_list, create_list, cleanup
 from mock import Mock
 from bson.objectid import ObjectId
 from copy import copy
@@ -179,3 +179,12 @@ class TestModule(TestCase):
 
         self.assertEqual(created_list, docs)
 
+    def test_cleanup(self):
+        object_id = ObjectId()
+        self.user_collection.insert = Mock(return_value=object_id)
+
+        create("user")
+        cleanup()
+
+        self.user_collection.remove.assert_called_with(object_id)
+        self.company_collection.remove.assert_called_with(self.company_id)

@@ -4,6 +4,7 @@ class Factory(object):
     def __init__(self, collection=None, **attrs):
         self.collection = collection
         self.attrs = attrs
+        self.created_ids = []
 
     def build(self, **overrides):
         """Builds an instance of the document described by the attributes
@@ -42,4 +43,11 @@ class Factory(object):
 
         doc = self.build(**overrides)
         doc_id = self.collection.insert(doc)
+        self.created_ids.append(doc_id)
         return self.collection.find_one(doc_id)
+
+
+    def cleanup(self):
+        """Cleanup all instances created by this factory."""
+        while len(self.created_ids) > 0:
+            self.collection.remove(self.created_ids.pop())

@@ -1,7 +1,8 @@
 import unittest
 from monufacture.factory import Factory
-from mock import Mock
+from mock import Mock, call
 from bson.objectid import ObjectId
+from copy import copy
 
 
 class TestFactory(unittest.TestCase):
@@ -127,3 +128,43 @@ class TestFactory(unittest.TestCase):
 
         with self.assertRaises(IOError):
             factory.create()
+
+    def test_cleanup_nothing_to_do(self):
+        factory = Factory(self.collection,
+            first_name='John',
+            last_name='Smith',
+            age=32)
+
+        factory.cleanup()
+
+        expected_calls = []
+        self.assertEqual(self.collection.remove.mock_calls, expected_calls)
+
+    def test_cleanup(self):
+        ids = [ObjectId() for x in range(3)]
+        cleanup_ids = copy(ids)
+        cleanup_ids.reverse()
+
+        def insert_results(*args):
+            return ids.pop(0)
+
+        self.collection.insert = Mock(side_effect=insert_results)
+
+        factory = Factory(self.collection,
+            first_name='John',
+            last_name='Smith',
+            age=32)
+
+        for x in range(3):
+            factory.create()
+
+        factory.cleanup()
+
+        expected_calls = [call(oid) for oid in cleanup_ids]
+        self.assertEqual(self.collection.remove.mock_calls, expected_calls)
+
+        self.collection.reset_mock()
+
+        factory.cleanup()
+
+        self.assertFalse(self.collection.remove.called)

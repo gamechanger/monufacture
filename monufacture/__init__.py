@@ -35,3 +35,10 @@ def create_list(name, count):
     """Creates a list of `count` instances of the named document using the 
     associated factory."""
     return [create(name) for x in range(count)]
+
+
+def cleanup():
+    """Cleans up all factory data generated since the process was started, 
+    or since the last time this method was called."""
+    for factory in factories.itervalues():
+        factory.cleanup()
