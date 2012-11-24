@@ -1,14 +1,14 @@
 from factory import Factory
-from dynamic import dependent, sequence
+from dynamic import dependent, sequence, insert, id_of
 
 # Registry for all factories
 factories = {}
 
 
-def factory(name, collection=None, **attrs):
+def factory(factory_document_name, collection=None, **attrs):
     """Declares a new named factory with the given attributes."""
     factory = Factory(collection, **attrs)
-    factories[name] = factory
+    factories[factory_document_name] = factory
 
 
 def create(name, **overrides):

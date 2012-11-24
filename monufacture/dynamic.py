@@ -1,3 +1,5 @@
+import monufacture
+
 """Contains setter functions designed to be used inline with
 factory definitions to inject dynamic values into models as
 and when they are built."""
@@ -32,4 +34,20 @@ def dependent(fn):
     def build(obj):
         return fn(obj)
 
+    return build
+
+
+def insert(name):
+    """Inserts the document fragment built by the given named factory at a
+    given container attribute."""
+    def build(*args):
+        return monufacture.build(name)
+    return build
+
+
+def id_of(name):
+    """Creates an instance using the given named factory and returns the
+    ID of the persisted record."""
+    def build(*args):
+        return monufacture.create(name)["_id"]
     return build

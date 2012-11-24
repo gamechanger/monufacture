@@ -1,5 +1,5 @@
 from unittest import TestCase
-from monufacture import factory, dependent, sequence, build, create, build_list, create_list
+from monufacture import factory, dependent, sequence, insert, id_of, build, create, build_list, create_list
 from mock import Mock
 from bson.objectid import ObjectId
 from copy import copy
@@ -7,10 +7,24 @@ from copy import copy
 class TestModule(TestCase):
 
     def setUp(self):
-        self.collection = Mock()
-        factory("user", self.collection,
+        self.company_id = ObjectId()
+        self.user_collection = Mock()
+        self.company_collection = Mock()
+        self.company_collection.insert = Mock(return_value=self.company_id)
+        self.company_collection.find_one = Mock(return_value={'_id': self.company_id})
+
+        factory("prefs", 
+            receives_sms = True,
+            receives_email = False)
+
+        factory("company", self.company_collection,
+            name = "GloboCorp")
+
+        factory("user", self.user_collection,
             first = "John",
             last = "Smith",
+            prefs = insert("prefs"),
+            company_id = id_of("company"),
             email = dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
             age = sequence(lambda n: n + 20))
 
@@ -18,6 +32,11 @@ class TestModule(TestCase):
         expected1 = {
             "first": "John",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "John.Smith@test.com",
             "age": 21
         }
@@ -25,6 +44,11 @@ class TestModule(TestCase):
         expected2 = {
             "first": "Mike",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
             "age": 22
         }
@@ -39,38 +63,63 @@ class TestModule(TestCase):
             "_id": ObjectId,
             "first": "Mike",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
             "age": 21
         }
 
-        self.collection.insert = Mock(return_value=to_return["_id"])
-        self.collection.find_one = Mock(return_value=to_return)
+        self.user_collection.insert = Mock(return_value=to_return["_id"])
+        self.user_collection.find_one = Mock(return_value=to_return)
 
         created = create("user", first='Mike')
 
-        self.collection.insert.assert_called_with({
+        self.user_collection.insert.assert_called_with({
             "first": "Mike",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
             "age": 21
         })
-        self.collection.find_one.assert_called_with(to_return["_id"])
+        self.user_collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)        
 
     def test_build_list(self):
         expected_list = [{
             "first": "John",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "John.Smith@test.com",
             "age": 21
         }, {
             "first": "John",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "John.Smith@test.com",
             "age": 22
         }, {
             "first": "John",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "John.Smith@test.com",
             "age": 23
         }]
@@ -85,18 +134,33 @@ class TestModule(TestCase):
             "_id": object_ids[0],
             "first": "John",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "John.Smith@test.com",
             "age": 21
         }, {
             "_id": object_ids[1],
             "first": "John",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "John.Smith@test.com",
             "age": 22
         }, {
             "_id": object_ids[2],
             "first": "John",
             "last": "Smith",
+            "prefs": {
+                "receives_sms": True,
+                "receives_email": False
+            },
+            "company_id": self.company_id,
             "email": "John.Smith@test.com",
             "age": 23
         }]
@@ -108,8 +172,8 @@ class TestModule(TestCase):
         def doc_returns(*args):
             return return_docs.pop(0)
 
-        self.collection.insert = Mock(side_effect=object_id_returns)
-        self.collection.find_one = Mock(side_effect=doc_returns)
+        self.user_collection.insert = Mock(side_effect=object_id_returns)
+        self.user_collection.find_one = Mock(side_effect=doc_returns)
 
         created_list = create_list("user", 3)
 
