@@ -1,5 +1,5 @@
 from unittest import TestCase
-from monufacture import factory, dependent, sequence, insert, id_of, build, create, build_list, create_list, cleanup
+from monufacture import factory, dependent, sequence, insert, id_of, build, create, build_list, create_list, cleanup, reset
 from mock import Mock
 from bson.objectid import ObjectId
 from copy import copy
@@ -27,6 +27,9 @@ class TestModule(TestCase):
             company_id = id_of("company"),
             email = dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
             age = sequence(lambda n: n + 20))
+
+    def tearDown(self):
+        reset()
 
     def test_build(self):
         expected1 = {

@@ -42,3 +42,8 @@ def cleanup():
     or since the last time this method was called."""
     for factory in factories.itervalues():
         factory.cleanup()
+
+def reset():
+    """Resets Monufacturer, removing all registered factories. Only really 
+    here for testing purposes."""
+    factories.clear()
