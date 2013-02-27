@@ -1,5 +1,5 @@
 import unittest
-from monufacture.dynamic import sequence, dependent, insert, id_of
+from monufacture.dynamic import sequence, dependent, insert, id_of, random_text
 from mock import patch
 
 
@@ -40,3 +40,33 @@ class TestDynamicFunctions(unittest.TestCase):
         func = id_of("bob")
         self.assertEqual(1234, func())
         create.assert_called_with("bob")
+
+    def test_random_text(self):
+        func = random_text()
+        text = func()
+        self.assertRegexpMatches(text, r'^[a-zA-Z]{10}$')
+        text2 = func()
+        self.assertNotEqual(text, text2)
+
+    def test_random_text_of_length(self):
+        func = random_text(15)
+        text = func()
+        self.assertEqual(15, len(text))
+
+    def test_random_text_with_spaces(self):
+        func = random_text(1000, spaces=True)
+        text = func()
+        self.assertNotRegexpMatches(text, r'^[a-zA-Z]{1000}$')
+        self.assertRegexpMatches(text, r'^[a-zA-Z\s]{1000}$')
+
+    def test_random_text_with_digits(self):
+        func = random_text(1000, digits=True)
+        text = func()
+        self.assertNotRegexpMatches(text, r'^[a-zA-Z]{1000}$')
+        self.assertRegexpMatches(text, r'^[a-zA-Z0-9]{1000}$')
+
+    def test_random_text_with_other_chars(self):
+        func = random_text(1000, other_chars=[',','.'])
+        text = func()
+        self.assertNotRegexpMatches(text, r'^[a-zA-Z]{1000}$')
+        self.assertRegexpMatches(text, r'^[a-zA-Z.,]{1000}$')

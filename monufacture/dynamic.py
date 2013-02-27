@@ -1,4 +1,6 @@
 import monufacture
+import string
+import random
 
 """Contains setter functions designed to be used inline with
 factory definitions to inject dynamic values into models as
@@ -50,4 +52,20 @@ def id_of(name):
     ID of the persisted record."""
     def build(*args):
         return monufacture.create(name)["_id"]
+    return build
+
+
+def random_text(length=10, spaces=False, digits=False, other_chars=[]):
+    """Inserts some random text of the given length into the document."""
+
+    # Build the char set we'll use
+    char_set = list(string.letters)
+    if spaces:
+        char_set.append(" ")
+    if digits:
+        char_set += list(string.digits)
+    char_set += other_chars
+
+    def build(*args):
+        return "".join([random.choice(char_set) for i in xrange(length)])
     return build
