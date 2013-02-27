@@ -2,6 +2,7 @@
 
 Monufacture is a simple test data factory framework for Python which aims to make it easy to setup and teardown predictable test data in Mongo as part of testing functional code. 
 
+[![build status](https://travis-ci.org/tleach/monufacture.png?branch=master "Build status")](https://travis-ci.org/tleach/monufacture)
 
 # Installation
 
