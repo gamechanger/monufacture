@@ -1,5 +1,5 @@
 import unittest
-from monufacture.dynamic import sequence, dependent, insert, id_of, random_text
+from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text
 from mock import patch
 
 
@@ -28,9 +28,9 @@ class TestDynamicFunctions(unittest.TestCase):
         self.assertEqual("Bob Jones", func(doc_b))
 
     @patch('monufacture.build')
-    def test_insert(self, build):
+    def test_subdoc(self, build):
         build.return_value = {"key": "value"}
-        func = insert("prefs")
+        func = subdoc("prefs")
         self.assertEqual({"key": "value"}, func())
         build.assert_called_with("prefs")
 

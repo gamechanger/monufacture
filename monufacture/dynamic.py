@@ -39,7 +39,7 @@ def dependent(fn):
     return build
 
 
-def insert(name):
+def subdoc(name):
     """Inserts the document fragment built by the given named factory at a
     given container attribute."""
     def build(*args):

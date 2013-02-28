@@ -1,5 +1,5 @@
 from unittest import TestCase
-from monufacture import factory, dependent, sequence, insert, id_of, build, create, build_list, create_list, cleanup, reset
+from monufacture import factory, dependent, sequence, subdoc, id_of, build, create, build_list, create_list, cleanup, reset
 from mock import Mock
 from bson.objectid import ObjectId
 from copy import copy
@@ -23,7 +23,7 @@ class TestModule(TestCase):
         factory("user", self.user_collection,
             first = "John",
             last = "Smith",
-            prefs = insert("prefs"),
+            prefs = subdoc("prefs"),
             company_id = id_of("company"),
             email = dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
             age = sequence(lambda n: n + 20))

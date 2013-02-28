@@ -2,7 +2,7 @@ import os
 from pymongo.connection import Connection
 from unittest import TestCase, TestLoader, TestResult
 from monufacture.test_support import enable_factories
-from monufacture import factory, dependent, sequence, insert, id_of, create, create_list, reset
+from monufacture import factory, dependent, sequence, subdoc, id_of, create, create_list, reset
 
 host = os.environ.get("DB_IP", "localhost")
 port = int(os.environ.get("DB_PORT", 27017))
@@ -43,7 +43,7 @@ class TestTestSupport(TestCase):
         factory("user", user_collection,
             first = "John",
             last = "Smith",
-            prefs = insert("prefs"),
+            prefs = subdoc("prefs"),
             company_id = id_of("company"),
             email = dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
             age = sequence(lambda n: n + 20))
