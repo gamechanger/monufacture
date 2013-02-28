@@ -70,3 +70,13 @@ class TestDynamicFunctions(unittest.TestCase):
         text = func()
         self.assertNotRegexpMatches(text, r'^[a-zA-Z]{1000}$')
         self.assertRegexpMatches(text, r'^[a-zA-Z.,]{1000}$')
+
+    def test_random_text_with_no_lowercase(self):
+        func = random_text(1000, lower=False)
+        text = func()
+        self.assertRegexpMatches(text, r'^[A-Z]{1000}$')
+
+    def test_random_text_with_no_uppercase(self):
+        func = random_text(1000, upper=False)
+        text = func()
+        self.assertRegexpMatches(text, r'^[a-z]{1000}$')

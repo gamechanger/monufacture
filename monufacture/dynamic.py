@@ -55,11 +55,16 @@ def id_of(name):
     return build
 
 
-def random_text(length=10, spaces=False, digits=False, other_chars=[]):
+def random_text(length=10, spaces=False, digits=False, upper=True, 
+    lower=True, other_chars=[]):
     """Inserts some random text of the given length into the document."""
 
     # Build the char set we'll use
-    char_set = list(string.letters)
+    char_set = []
+    if upper:
+        char_set += list(string.uppercase)
+    if lower:
+        char_set += list(string.lowercase)
     if spaces:
         char_set.append(" ")
     if digits:
