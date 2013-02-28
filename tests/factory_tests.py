@@ -120,6 +120,34 @@ class TestFactory(unittest.TestCase):
         self.collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)
 
+    def test_create_with_additional_fields(self):
+        to_return = {
+            "_id": ObjectId(),
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "gender": "male"
+        }
+
+        self.collection.insert = Mock(return_value=to_return["_id"])
+        self.collection.find_one = Mock(return_value=to_return)
+
+        factory = Factory(self.collection,
+            first_name='John',
+            last_name='Smith',
+            age=32)
+
+        created = factory.create(gender='male')
+
+        self.collection.insert.assert_called_with({
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "gender": "male"
+        })
+        self.collection.find_one.assert_called_with(to_return["_id"])
+        self.assertDictEqual(created, to_return)
+
     def test_create_disabled_when_no_collection_provided(self):
         factory = Factory(
             first_name='John',
