@@ -74,3 +74,17 @@ def random_text(length=10, spaces=False, digits=False, upper=True,
     def build(*args):
         return "".join([random.choice(char_set) for i in xrange(length)])
     return build
+
+
+def dbref_to(name, type=None):
+    """Create a DBRef-type subdoc structure linking to a new instance of the
+    given named factory type."""
+    if not type:
+        type = name
+
+    def build(*args):
+        return {
+            "$id": monufacture.create(name)["_id"],
+            "$ref": type
+        }
+    return build

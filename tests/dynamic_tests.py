@@ -1,5 +1,5 @@
 import unittest
-from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text
+from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text, dbref_to
 from mock import patch
 
 
@@ -80,3 +80,17 @@ class TestDynamicFunctions(unittest.TestCase):
         func = random_text(1000, upper=False)
         text = func()
         self.assertRegexpMatches(text, r'^[a-z]{1000}$')
+
+    @patch('monufacture.create')
+    def test_dbref_to(self, create):
+        create.return_value = {"_id": 1234}
+        func = dbref_to("bob")
+        self.assertEqual({"$id": 1234, "$ref": "bob"}, func())
+        create.assert_called_with("bob")
+
+    @patch('monufacture.create')
+    def test_dbref_to_with_type_override(self, create):
+        create.return_value = {"_id": 1234}
+        func = dbref_to("bob", type="user")
+        self.assertEqual({"$id": 1234, "$ref": "user"}, func())
+        create.assert_called_with("bob")
