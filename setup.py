@@ -1,9 +1,8 @@
 import setuptools
-import freezegun # need to do this here to ensure it gets imported before datetime
 
 setuptools.setup(
     name="Monufacture",
-    version="0.1.2",
+    version="0.1.3",
     author="Tom Leach",
     author_email="tom@leach.it",
     description="A lightweight factory framework for creating / tearing " +
