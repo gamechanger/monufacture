@@ -1,7 +1,8 @@
+from freezegun import freeze_time
 import unittest
-from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text, dbref_to
+from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now
 from mock import patch
-
+from datetime import datetime, timedelta
 
 class TestDynamicFunctions(unittest.TestCase):
 
@@ -94,3 +95,47 @@ class TestDynamicFunctions(unittest.TestCase):
         func = dbref_to("bob", type="user")
         self.assertEqual({"$id": 1234, "$ref": "user"}, func())
         create.assert_called_with("bob")
+
+    @freeze_time('2012-01-14 03:21:34')
+    def test_date_now(self):
+        func = date()
+        d = func()
+        self.assertEqual(datetime(2012, 1, 14, 3, 21, 34), d)
+
+    def test_date_specified(self):
+        func = date(2013, 1, 2, 3, 4, 5, 6)
+        d = func()
+        self.assertEqual(datetime(2013, 1, 2, 3, 4, 5, 6), d)
+
+    def test_date_specified_with_just_minutes(self):
+        func = date(2013, 1, 2, minute=40)
+        d = func()
+        self.assertEqual(datetime(2013, 1, 2, 0, 40, 0, 0), d)
+
+    def test_valueerror_when_incomplete_date(self):
+        with self.assertRaises(ValueError):
+            date(2013, 1)
+
+    @freeze_time('2012-01-14 03:21:34')
+    def test_5_minutes_ago(self):
+        func = ago(minutes=5)
+        d = func()
+        self.assertEqual(datetime(2012, 1, 14, 3, 16, 34), d)
+
+    @freeze_time('2012-01-14 03:21:34')
+    def test_2_days_50_seconds_ago(self):
+        func = ago(days=2, seconds=50)
+        d = func()
+        self.assertEqual(datetime(2012, 1, 12, 3, 20, 44), d)
+
+    @freeze_time('2012-01-14 03:21:34')
+    def test_5_minutes_from_now(self):
+        func = from_now(minutes=5)
+        d = func()
+        self.assertEqual(datetime(2012, 1, 14, 3, 26, 34), d)
+
+    @freeze_time('2012-01-14 03:21:34')
+    def test_2_days_50_seconds_from_now(self):
+        func = from_now(days=2, seconds=50)
+        d = func()
+        self.assertEqual(datetime(2012, 1, 16, 3, 22, 24), d)

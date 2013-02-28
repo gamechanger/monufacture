@@ -1,6 +1,7 @@
 import monufacture
 import string
 import random
+from datetime import datetime, timedelta
 
 """Contains setter functions designed to be used inline with
 factory definitions to inject dynamic values into models as
@@ -87,4 +88,56 @@ def dbref_to(name, type=None):
             "$id": monufacture.create(name)["_id"],
             "$ref": type
         }
+    return build
+
+
+def date(year=None, month=None, day=None, hour=None, minute=None, second=None, microsecond=None):
+    """Returns a function to generate the current datetime for insertion into a document.
+    Components of the date/time can be provided as overrides."""
+
+    if year or month or day or hour or minute or second or microsecond:
+        if not (year and month and day):
+            raise ValueError("Either all components of a date must be provided or none of them.")
+
+        def compact_args(**kwargs):
+            out = {}
+            out.update((k, v) for k, v in kwargs.iteritems() if v is not None)
+            return out
+
+        dt_args = compact_args(
+            year=year, 
+            month=month, 
+            day=day, 
+            hour=hour, 
+            minute=minute, 
+            second=second, 
+            microsecond=microsecond)
+
+        def build_specific(*args):
+            return datetime(**dt_args)
+
+        return build_specific
+
+    def build_now(*args):
+        return datetime.now()
+    return build_now
+
+
+
+def ago(**kwargs):
+    """Returns a function to generate a datetime a time delta in the past from the 
+    time at which it is run."""
+    def build(*args):
+        return datetime.now() - timedelta(**kwargs)
+
+    return build
+
+
+
+def from_now(**kwargs):
+    """Returns a function to generate a datetime a time delta in the future from the 
+    time at which it is run."""
+    def build(*args):
+        return datetime.now() + timedelta(**kwargs)
+
     return build

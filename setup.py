@@ -1,5 +1,5 @@
 import setuptools
-
+import freezegun # need to do this here to ensure it gets imported before datetime
 
 setuptools.setup(
     name="Monufacture",
@@ -15,5 +15,5 @@ setuptools.setup(
     long_description="Monufacture is a factory framework for creating test " +
                      "data in MongoDB, inspired by factory_girl.",
     install_requires=['pymongo'],
-    tests_require=['mock', 'nose']
+    tests_require=['mock', 'nose', 'freezegun']
     )
