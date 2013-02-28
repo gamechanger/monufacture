@@ -1,5 +1,5 @@
 from factory import Factory
-from dynamic import dependent, sequence, subdoc, id_of, random_text
+from dynamic import dependent, sequence, subdoc, id_of, random_text, dbref_to
 
 # Registry for all factories
 factories = {}
