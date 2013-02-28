@@ -3,7 +3,7 @@ import freezegun # need to do this here to ensure it gets imported before dateti
 
 setuptools.setup(
     name="Monufacture",
-    version="0.1.1",
+    version="0.1.2",
     author="Tom Leach",
     author_email="tom@leach.it",
     description="A lightweight factory framework for creating / tearing " +
