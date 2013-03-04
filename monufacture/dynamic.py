@@ -143,6 +143,8 @@ def from_now(**kwargs):
     return build
 
 def list_of(fn, length):
+    """Returns a function to generate a list of the given length,
+    consisting of results of the given function"""
     def build(*args):
         return [fn(*args) for i in range(length)]
     return build
