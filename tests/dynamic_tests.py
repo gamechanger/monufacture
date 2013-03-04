@@ -1,9 +1,10 @@
 from freezegun import freeze_time
 import unittest
 import monufacture.dynamic
-from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of
+from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id
 from mock import patch
 from datetime import datetime
+from bson.objectid import ObjectId
 
 # Reload monufacture to ensure we're testing against the
 # freezegun-patched version of datetime.
@@ -148,3 +149,8 @@ class TestDynamicFunctions(unittest.TestCase):
     def test_list_of(self):
         func = lambda x: x
         self.assertEqual(list_of(func, 5)('a'), ['a'] * 5)
+
+    def test_object_id(self):
+        func = object_id()
+        d = func()
+        self.assertIsInstance(d, ObjectId)

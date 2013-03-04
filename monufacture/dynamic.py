@@ -2,6 +2,7 @@ import monufacture
 import string
 import random
 from datetime import datetime, timedelta
+from bson.objectid import ObjectId
 
 """Contains setter functions designed to be used inline with
 factory definitions to inject dynamic values into models as
@@ -123,7 +124,6 @@ def date(year=None, month=None, day=None, hour=None, minute=None, second=None, m
     return build_now
 
 
-
 def ago(**kwargs):
     """Returns a function to generate a datetime a time delta in the past from the 
     time at which it is run."""
@@ -131,7 +131,6 @@ def ago(**kwargs):
         return datetime.now() - timedelta(**kwargs)
 
     return build
-
 
 
 def from_now(**kwargs):
@@ -142,9 +141,18 @@ def from_now(**kwargs):
 
     return build
 
+
 def list_of(fn, length):
     """Returns a function to generate a list of the given length,
     consisting of results of the given function"""
     def build(*args):
         return [fn(*args) for i in range(length)]
+    return build
+
+
+def object_id():
+    """Returns a builder function which will insert a new ObjectId
+    when the object is built."""
+    def build(*args):
+        return ObjectId()
     return build

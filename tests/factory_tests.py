@@ -200,9 +200,6 @@ class TestFactory(unittest.TestCase):
 
         expected_calls = [call(oid) for oid in cleanup_ids]
         self.assertEqual(self.collection.remove.mock_calls, expected_calls)
-
         self.collection.reset_mock()
-
         factory.cleanup()
-
         self.assertFalse(self.collection.remove.called)
