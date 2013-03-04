@@ -1,6 +1,6 @@
 from freezegun import freeze_time
 import unittest
-from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now
+from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of
 from mock import patch
 from datetime import datetime, timedelta
 
@@ -139,3 +139,7 @@ class TestDynamicFunctions(unittest.TestCase):
         func = from_now(days=2, seconds=50)
         d = func()
         self.assertEqual(datetime(2012, 1, 16, 3, 22, 24), d)
+
+    def test_list_of(self):
+        func = lambda x: x
+        self.assertEqual(list_of(func, 5)('a'), ['a'] * 5)
