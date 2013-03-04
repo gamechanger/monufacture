@@ -31,22 +31,24 @@ class TestTestSupport(TestCase):
             self.assertEqual(user_collection.count(), 1)
             self.assertEqual("Joe", user['first'])
 
-
     def setUp(self):
-        factory("prefs", 
-            receives_sms = True,
-            receives_email = False)
+        factory("prefs", {
+            "receives_sms":     True,
+            "receives_email":   False
+        })
 
-        factory("company", company_collection,
-            name = "GloboCorp")
+        factory("company", {
+            "name": "GloboCorp"
+        }, company_collection)
 
-        factory("user", user_collection,
-            first = "John",
-            last = "Smith",
-            prefs = subdoc("prefs"),
-            company_id = id_of("company"),
-            email = dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
-            age = sequence(lambda n: n + 20))
+        factory("user", {
+            "first":        "John",
+            "last":         "Smith",
+            "prefs":        subdoc("prefs"),
+            "company_id":   id_of("company"),
+            "email":        dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
+            "age":          sequence(lambda n: n + 20)
+        }, user_collection)
 
     def tearDown(self):
         reset()

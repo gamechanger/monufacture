@@ -5,9 +5,9 @@ from dynamic import dependent, sequence, subdoc, id_of, random_text, dbref_to, d
 factories = {}
 
 
-def factory(factory_document_name, collection=None, **attrs):
+def factory(factory_document_name, attrs, collection=None):
     """Declares a new named factory with the given attributes."""
-    factory = Factory(collection, **attrs)
+    factory = Factory(attrs, collection)
     factories[factory_document_name] = factory
 
 

@@ -13,20 +13,23 @@ class TestModule(TestCase):
         self.company_collection.insert = Mock(return_value=self.company_id)
         self.company_collection.find_one = Mock(return_value={'_id': self.company_id})
 
-        factory("prefs", 
-            receives_sms = True,
-            receives_email = False)
+        factory("prefs", {
+            "receives_sms": True,
+            "receives_email": False
+        })
 
-        factory("company", self.company_collection,
-            name = "GloboCorp")
+        factory("company", {
+            "name": "GloboCorp"
+        }, self.company_collection)
 
-        factory("user", self.user_collection,
-            first = "John",
-            last = "Smith",
-            prefs = subdoc("prefs"),
-            company_id = id_of("company"),
-            email = dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
-            age = sequence(lambda n: n + 20))
+        factory("user", {
+            "first": "John",
+            "last": "Smith",
+            "prefs": subdoc("prefs"),
+            "company_id": id_of("company"),
+            "email": dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
+            "age": sequence(lambda n: n + 20)
+        }, self.user_collection)
 
     def tearDown(self):
         reset()
@@ -140,7 +143,7 @@ class TestModule(TestCase):
             "prefs": {
                 "receives_sms": True,
                 "receives_email": False
-            },
+        },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
             "age": 21

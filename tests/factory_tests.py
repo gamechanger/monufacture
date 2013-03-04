@@ -11,10 +11,11 @@ class TestFactory(unittest.TestCase):
         self.collection = Mock()
 
     def test_build_simple(self):
-        factory = Factory(self.collection,
-            first_name='John',
-            last_name='Smith',
-            age=32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32
+        }, self.collection)
 
         self.assertDictEqual(factory.build(), {
             "first_name": "John",
@@ -26,11 +27,12 @@ class TestFactory(unittest.TestCase):
         def full_name(doc):
             return "%s %s" % (doc['first_name'], doc['last_name'])
 
-        factory = Factory(self.collection,
-            first_name = 'John',
-            last_name = 'Smith',
-            full_name = full_name,
-            age = 32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "full_name": full_name,
+            "age": 32
+        }, self.collection)
 
         self.assertDictEqual(factory.build(), {
             "first_name": "John",
@@ -40,10 +42,11 @@ class TestFactory(unittest.TestCase):
         })
 
     def test_build_with_overrides(self):
-        factory = Factory(self.collection,
-            first_name='John',
-            last_name='Smith',
-            age=32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32
+        }, self.collection)
 
         self.assertDictEqual(factory.build(first_name='Mike', age=45), {
             "first_name": "Mike",
@@ -55,11 +58,12 @@ class TestFactory(unittest.TestCase):
         def full_name(doc):
             return "%s %s" % (doc['first_name'], doc['last_name'])
 
-        factory = Factory(self.collection,
-            first_name = 'John',
-            last_name = 'Smith',
-            full_name = full_name,
-            age = 32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "full_name": full_name,
+            "age": 32
+        }, self.collection)
 
         self.assertDictEqual(factory.build(first_name='Mike', age=45), {
             "first_name": "Mike",
@@ -79,10 +83,11 @@ class TestFactory(unittest.TestCase):
         self.collection.insert = Mock(return_value=to_return["_id"])
         self.collection.find_one = Mock(return_value=to_return)
 
-        factory = Factory(self.collection,
-            first_name='John',
-            last_name='Smith',
-            age=32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32
+        }, self.collection)
 
         created = factory.create()
 
@@ -105,10 +110,11 @@ class TestFactory(unittest.TestCase):
         self.collection.insert = Mock(return_value=to_return["_id"])
         self.collection.find_one = Mock(return_value=to_return)
 
-        factory = Factory(self.collection,
-            first_name='John',
-            last_name='Smith',
-            age=32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32
+        }, self.collection)
 
         created = factory.create(first_name='Mike')
 
@@ -132,10 +138,11 @@ class TestFactory(unittest.TestCase):
         self.collection.insert = Mock(return_value=to_return["_id"])
         self.collection.find_one = Mock(return_value=to_return)
 
-        factory = Factory(self.collection,
-            first_name='John',
-            last_name='Smith',
-            age=32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32
+        }, self.collection)
 
         created = factory.create(gender='male')
 
@@ -149,19 +156,21 @@ class TestFactory(unittest.TestCase):
         self.assertDictEqual(created, to_return)
 
     def test_create_disabled_when_no_collection_provided(self):
-        factory = Factory(
-            first_name='John',
-            last_name='Smith',
-            age=32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32
+        })
 
         with self.assertRaises(IOError):
             factory.create()
 
     def test_cleanup_nothing_to_do(self):
-        factory = Factory(self.collection,
-            first_name='John',
-            last_name='Smith',
-            age=32)
+        factory = Factory(self.collection,{
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32
+        })
 
         factory.cleanup()
 
@@ -178,10 +187,11 @@ class TestFactory(unittest.TestCase):
 
         self.collection.insert = Mock(side_effect=insert_results)
 
-        factory = Factory(self.collection,
-            first_name='John',
-            last_name='Smith',
-            age=32)
+        factory = Factory({
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32
+        }, self.collection)
 
         for x in range(3):
             factory.create()

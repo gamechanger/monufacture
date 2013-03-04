@@ -1,7 +1,7 @@
 from types import FunctionType
 
 class Factory(object):
-    def __init__(self, collection=None, **attrs):
+    def __init__(self, attrs, collection=None):
         self.collection = collection
         self.attrs = attrs
         self.created_ids = []
