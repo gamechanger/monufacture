@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="Monufacture",
-    version="0.1.3",
+    version="0.1.4",
     author="Tom Leach",
     author_email="tom@leach.it",
     description="A lightweight factory framework for creating / tearing " +
@@ -15,4 +15,4 @@ setuptools.setup(
                      "data in MongoDB, inspired by factory_girl.",
     install_requires=['pymongo'],
     tests_require=['mock', 'nose', 'freezegun']
-    )
+)
