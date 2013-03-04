@@ -1,8 +1,13 @@
 from freezegun import freeze_time
 import unittest
+import monufacture.dynamic
 from monufacture.dynamic import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of
 from mock import patch
-from datetime import datetime, timedelta
+from datetime import datetime
+
+# Reload monufacture to ensure we're testing against the
+# freezegun-patched version of datetime.
+reload(monufacture.dynamic)
 
 class TestDynamicFunctions(unittest.TestCase):
 
