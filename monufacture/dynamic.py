@@ -135,9 +135,14 @@ def ago(**kwargs):
 
 
 def from_now(**kwargs):
-    """Returns a function to generate a datetime a time delta in the future from the 
+    """Returns a function to generate a datetime a time delta in the future from the
     time at which it is run."""
     def build(*args):
         return datetime.now() + timedelta(**kwargs)
 
+    return build
+
+def list_of(fn, length):
+    def build(*args):
+        return [fn(*args) for i in range(length)]
     return build
