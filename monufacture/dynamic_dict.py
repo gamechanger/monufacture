@@ -17,6 +17,8 @@ def getitem(self, index, superclass):
     elif isinstance(inner, dict):
         self[index] = DynamicDict(inner, head=self.head)
 
+    # If the value is an embedded list, we need to wrap it in a
+    # DynamicList instance.
     elif isinstance(inner, list):
         self[index] = DynamicList(inner, head=self.head)
 
