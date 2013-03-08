@@ -70,3 +70,44 @@ class TestDynamicDict(TestCase):
 
         self.assertEqual("some text", d["astring"])
         self.assertEqual("func text", d["sub"][0][0])
+
+    def test_uber_complex_structure(self):
+        def a(node, root):
+            self.assertEqual(doc, root)
+            self.assertEqual(doc, node)
+            return "value a"
+
+        def d(node, root):
+            self.assertEqual(doc, root)
+            self.assertEqual(doc['b']['c'], node)
+            return "value d"
+
+        def g(node, root):
+            self.assertEqual(doc, root)
+            self.assertEqual(doc['b']['e'][0]['f'], node)
+            return "value g"
+
+        def h(node, root):
+            self.assertEqual(doc, root)
+            self.assertEqual(doc['b']['e'][0], node)
+            return "value h"
+
+        doc = DynamicDict({
+            "a": a,
+            "b": {
+                "c": {
+                    "d": d
+                },
+                "e": [
+                    {
+                        "f": [g],
+                        "h": h
+                    }
+                ]
+            }
+        })
+
+        self.assertEqual("value a", doc['a'])
+        self.assertEqual("value d", doc['b']['c']['d'])
+        self.assertEqual("value g", doc['b']['e'][0]['f'][0])
+        self.assertEqual("value h", doc['b']['e'][0]['h'])

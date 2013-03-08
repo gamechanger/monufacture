@@ -19,7 +19,7 @@ class DynamicList(list):
         # If the value is an embedded dict, we need to wrap it in a
         # DynamicDict instance.
         elif isinstance(inner, dict):
-            self[index] = DynamicList(inner)
+            self[index] = DynamicDict(inner, head=self.head)
 
         elif isinstance(inner, list):
             self[index] = DynamicList(inner, head=self.head)
