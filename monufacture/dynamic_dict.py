@@ -2,6 +2,9 @@ from types import FunctionType
 
 
 def getitem(self, index, superclass):
+    """Override __getitem__ implementation shared by both dynamic dicts
+    and lists."""
+
     inner = superclass.__getitem__(index)
 
     # If the value is a function, invoke it to get, set and return
