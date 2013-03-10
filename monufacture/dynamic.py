@@ -10,7 +10,7 @@ def getitem(self, index, superclass):
     # If the value is a function, invoke it to get, set and return
     # the value.
     if isinstance(inner, FunctionType):
-        self[index] = inner(self, self.head)
+        self[index] = inner(self)
 
     # If the value is an embedded dict, we need to wrap it in a
     # DynamicDict instance.

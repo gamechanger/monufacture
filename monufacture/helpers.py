@@ -35,7 +35,7 @@ def dependent(fn):
     """Declares a value for a factory attribute which depends on other values
     in the document in order to be set. The given function or lambda is
     passed the document and should return the value to set."""
-    def build(obj, head):
+    def build(obj):
         return fn(obj)
 
     return build

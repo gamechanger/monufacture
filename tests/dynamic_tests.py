@@ -13,9 +13,9 @@ class TestDynamicDict(TestCase):
         self.assertEqual(33, d["anint"])
 
     def test_dict_with_function_values(self):
-        def some_func(node, root):
+        def some_func(node):
             self.assertEqual(d, node)
-            self.assertEqual(d, root)
+            self.assertEqual(d, node.head)
             return "func text"
 
         d = DynamicDict({
@@ -27,9 +27,9 @@ class TestDynamicDict(TestCase):
         self.assertEqual("func text", d["afunc"])
 
     def test_dict_with_nested_function_values(self):
-        def some_func(node, root):
+        def some_func(node):
             self.assertEqual(d['sub'], node)
-            self.assertEqual(d, root)
+            self.assertEqual(d, node.head)
             return "func text"
 
         d = DynamicDict({
@@ -43,8 +43,8 @@ class TestDynamicDict(TestCase):
         self.assertEqual("func text", d["sub"]["afunc"])
 
     def test_dict_with_list_nested_function_values(self):
-        def some_func(node, root):
-            self.assertEqual(d, root)
+        def some_func(node):
+            self.assertEqual(d, node.head)
             self.assertEqual(d["sub"], node)
             return "func text"
 
@@ -57,8 +57,8 @@ class TestDynamicDict(TestCase):
         self.assertEqual("func text", d["sub"][0])
 
     def test_dict_with_double_nested_list(self):
-        def some_func(node, root):
-            self.assertEqual(d, root)
+        def some_func(node):
+            self.assertEqual(d, node.head)
             self.assertEqual(d["sub"][0], node)
             return "func text"
 
@@ -71,23 +71,23 @@ class TestDynamicDict(TestCase):
         self.assertEqual("func text", d["sub"][0][0])
 
     def test_uber_complex_structure(self):
-        def a(node, root):
-            self.assertEqual(doc, root)
+        def a(node):
+            self.assertEqual(doc, node.head)
             self.assertEqual(doc, node)
             return "value a"
 
-        def d(node, root):
-            self.assertEqual(doc, root)
+        def d(node):
+            self.assertEqual(doc, node.head)
             self.assertEqual(doc['b']['c'], node)
             return "value d"
 
-        def g(node, root):
-            self.assertEqual(doc, root)
+        def g(node):
+            self.assertEqual(doc, node.head)
             self.assertEqual(doc['b']['e'][0]['f'], node)
             return "value g"
 
-        def h(node, root):
-            self.assertEqual(doc, root)
+        def h(node):
+            self.assertEqual(doc, node.head)
             self.assertEqual(doc['b']['e'][0], node)
             return "value h"
 
@@ -112,16 +112,16 @@ class TestDynamicDict(TestCase):
         self.assertEqual("value h", doc['b']['e'][0]['h'])
 
     def test_resolve(self):
-        def a(node, root):
+        def a(node):
             return "value a"
 
-        def d(node, root):
+        def d(node):
             return "value d"
 
-        def g(node, root):
+        def g(node):
             return "value g"
 
-        def h(node, root):
+        def h(node):
             return "value h"
 
         doc = DynamicDict({

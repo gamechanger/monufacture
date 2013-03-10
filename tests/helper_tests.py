@@ -31,8 +31,8 @@ class TestHelperFunctions(unittest.TestCase):
         func = dependent(lambda doc: "%s %s" % (doc['first'], doc['last']))
         doc_a = {'first': 'John', 'last': 'Smith'}
         doc_b = {'first': 'Bob', 'last': 'Jones'}
-        self.assertEqual("John Smith", func(doc_a, doc_a))
-        self.assertEqual("Bob Jones", func(doc_b, doc_a))
+        self.assertEqual("John Smith", func(doc_a))
+        self.assertEqual("Bob Jones", func(doc_b))
 
     @patch('monufacture.build')
     def test_subdoc(self, build):
