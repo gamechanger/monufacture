@@ -1,8 +1,9 @@
 import os
 from pymongo.connection import Connection
 from unittest import TestCase, TestLoader, TestResult
-from monufacture.test_support import enable_factories
-from monufacture import factory, dependent, sequence, subdoc, id_of, create, create_list, reset
+from monufacture import factory, create, create_list, reset
+from monufacture.unittest import enable_factories
+from monufacture.helpers import dependent, sequence, subdoc, id_of
 
 host = os.environ.get("DB_IP", "localhost")
 port = int(os.environ.get("DB_PORT", 27017))
@@ -12,13 +13,13 @@ company_collection = conn.company
 user_collection = conn.user
 
 
-class TestTestSupport(TestCase):
+class TestUnittestSupport(TestCase):
     """Uses a phony test case to ensure that when we enable_factories in tests
     we the generated records get cleared up."""
 
     class TestTestCase(TestCase):
         def __init__(self, *args, **kwargs):
-            super(TestTestSupport.TestTestCase, self).__init__(*args, **kwargs)
+            super(TestUnittestSupport.TestTestCase, self).__init__(*args, **kwargs)
             enable_factories(self)
 
         def test_some_functionality(self):
@@ -57,7 +58,7 @@ class TestTestSupport(TestCase):
         user_collection.remove()
         company_collection.remove()
         loader = TestLoader()
-        suite = loader.loadTestsFromTestCase(TestTestSupport.TestTestCase)
+        suite = loader.loadTestsFromTestCase(TestUnittestSupport.TestTestCase)
         result = TestResult()
         suite.run(result)
         self.assertTrue(result.wasSuccessful(), result)

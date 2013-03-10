@@ -1,5 +1,6 @@
 from unittest import TestCase
-from monufacture import factory, dependent, sequence, subdoc, id_of, build, create, build_list, create_list, cleanup, reset
+from monufacture import factory, build, create, build_list, create_list, cleanup, reset
+from monufacture.helpers import dependent, sequence, subdoc, id_of
 from mock import Mock
 from bson.objectid import ObjectId
 from copy import copy

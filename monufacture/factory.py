@@ -1,4 +1,4 @@
-from types import FunctionType
+from dynamic import DynamicDict
 
 class Factory(object):
     def __init__(self, attrs, collection=None):
@@ -11,37 +11,10 @@ class Factory(object):
         used to create this factory without actually persisting it to 
         the database. Any overrides provided are used in preference to 
         those attributes associated with the factory."""
-        spec = {}
-
-        # First build the doc spec by copying attrs from the factory
-        # and overlaying overrides.
-        spec.update(self.attrs)
+        spec = DynamicDict(self.attrs)
         spec.update(overrides)
 
-
-        # Now use the spec to build the doc in two passes, the first to 
-        # set the static values, the second to apply functions which may 
-        # or not depend on static values.
-        doc = {}
-        for key, value in spec.items():
-            if not isinstance(value, FunctionType):
-                # Use the override if present
-                if key in overrides:
-                    doc[key] = overrides[key]
-                    continue
-
-                doc[key] = value
-
-        for key, value in spec.items():
-            if isinstance(value, FunctionType):
-                # Use the override if present
-                if key in overrides:
-                    doc[key] = overrides[key]
-                    continue
-
-                doc[key] = value(doc)
-
-        return doc
+        return spec.resolve()
 
     def create(self, **overrides):
         """Builds an instance of the document using the same approach as 

@@ -24,7 +24,7 @@ class TestFactory(unittest.TestCase):
         })
 
     def test_build_with_function_attrs(self):
-        def full_name(doc):
+        def full_name(doc, *args):
             return "%s %s" % (doc['first_name'], doc['last_name'])
 
         factory = Factory({
@@ -55,7 +55,7 @@ class TestFactory(unittest.TestCase):
         })
 
     def test_build_with_function_and_overrides(self):
-        def full_name(doc):
+        def full_name(doc, *args):
             return "%s %s" % (doc['first_name'], doc['last_name'])
 
         factory = Factory({
