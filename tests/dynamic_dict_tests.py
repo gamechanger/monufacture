@@ -1,7 +1,6 @@
 from unittest import TestCase
 from monufacture.dynamic_dict import DynamicDict
 
-
 class TestDynamicDict(TestCase):
 
     def test_non_dynamic_dict(self):
@@ -111,3 +110,48 @@ class TestDynamicDict(TestCase):
         self.assertEqual("value d", doc['b']['c']['d'])
         self.assertEqual("value g", doc['b']['e'][0]['f'][0])
         self.assertEqual("value h", doc['b']['e'][0]['h'])
+
+    def test_resolve(self):
+        def a(node, root):
+            return "value a"
+
+        def d(node, root):
+            return "value d"
+
+        def g(node, root):
+            return "value g"
+
+        def h(node, root):
+            return "value h"
+
+        doc = DynamicDict({
+            "a": a,
+            "b": {
+                "c": {
+                    "d": d
+                },
+                "e": [
+                    {
+                        "f": [g],
+                        "h": h
+                    }
+                ]
+            }
+        })
+
+        expected = {
+            "a": "value a",
+            "b": {
+                "c": {
+                    "d": "value d"
+                },
+                "e": [
+                    {
+                        "f": ["value g"],
+                        "h": "value h"
+                    }
+                ]
+            }
+        }
+
+        self.assertEqual(expected, doc.resolve())

@@ -38,6 +38,19 @@ class DynamicList(list):
     def __getitem__(self, index):
         return getitem(self, index, super(DynamicList, self))
 
+    def resolve(self):
+        """"Resolves the dynamic list into a static list with
+        static values."""
+        
+        out = []
+        for i in range(len(self)):
+            value = self[i]
+            if isinstance(value, DynamicDict) or isinstance(value, DynamicList):
+                out.append(value.resolve())
+            else:
+                out.append(value)
+
+        return out
 
 class DynamicDict(dict):
     """ A subclass of dict which checks whether a given key's value is a
@@ -51,3 +64,18 @@ class DynamicDict(dict):
 
     def __getitem__(self, key):
         return getitem(self, key, super(DynamicDict, self))
+
+    def resolve(self):
+        """"Resolves the dynamic dictionary into a static dictionary with
+        static values."""
+        
+        out = {}
+        for key in self:
+            value = self[key]
+
+            if isinstance(value, DynamicDict) or isinstance(value, DynamicList):
+                out[key] = value.resolve()
+            else:
+                out[key] = value
+
+        return out
