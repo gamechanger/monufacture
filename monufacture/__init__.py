@@ -19,19 +19,29 @@ def factory(name, collection):
     yield
     del local.working_factory
 
-def default(attrs):
+
+def default(attrs, traits=[]):
     if not hasattr(local, 'working_factory'):
         raise FactoryContextException("default() must be called inside a 'with factory()' context.")
 
     factory = local.working_factory
-    factory.default(attrs)
+    factory.default(attrs, traits)
 
-def document(name, attrs):
+
+def document(name, attrs, parent=None, traits=[]):
     if not hasattr(local, 'working_factory'):
         raise FactoryContextException("default() must be called inside a 'with factory()' context.")
 
     factory = local.working_factory
-    factory.document(name, attrs)
+    factory.document(name, attrs, parent, traits)
+
+
+def trait(name, attrs, parent=None):
+    if not hasattr(local, 'working_factory'):
+        raise FactoryContextException("default() must be called inside a 'with factory()' context.")
+
+    factory = local.working_factory
+    factory.trait(name, attrs, parent)
 
 
 # Methods to create document instances using factories

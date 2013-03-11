@@ -4,7 +4,6 @@ class Factory(object):
     def __init__(self, collection=None):
         self.collection = collection
         self.created_ids = []
-        self.default_document = {}
         self.documents = {}
         self.document_parents = {}
         self.document_traits = {}
@@ -19,11 +18,9 @@ class Factory(object):
             spec = self.traits[name]
         return spec
 
-    def _build_document(self, name=None):
-        if not name or name == "default":
-            doc = self.default_document
-        else:
-            doc = self.documents[name]
+    def _build_document(self, name):
+        print name
+        doc = self.documents[name]
 
         if name in self.document_parents:
             spec = self._build_document(self.document_parents[name])
@@ -42,7 +39,10 @@ class Factory(object):
         used to create this factory without actually persisting it to 
         the database. Any overrides provided are used in preference to 
         those attributes associated with the factory."""
-        if name and name not in self.documents:
+        if not name:
+            name = "default"
+
+        if name not in self.documents:
             raise NonExistentDocumentException(name)
         
         spec = self._build_document(name)
@@ -67,9 +67,10 @@ class Factory(object):
         while len(self.created_ids) > 0:
             self.collection.remove(self.created_ids.pop())
 
-    def default(self, attrs):
+    def default(self, attrs, traits=[]):
         """Sets the default document dict for the factory."""
-        self.default_document = attrs
+        self.document_traits["default"] = traits
+        self.documents["default"] = attrs
 
     def document(self, name, attrs, parent=None, traits=[]):
         """Declares a named document type within the factory."""

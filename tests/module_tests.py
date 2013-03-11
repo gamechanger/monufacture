@@ -1,6 +1,6 @@
 from unittest import TestCase
-from monufacture import factory, default, document, build, create, build_list, create_list, cleanup, reset, FactoryContextException
-from monufacture.helpers import dependent, sequence, id_of
+from monufacture import factory, trait, default, document, build, create, build_list, create_list, cleanup, reset, FactoryContextException
+from monufacture.helpers import dependent, sequence, id_of, date
 from mock import Mock
 from bson.objectid import ObjectId
 from copy import copy
@@ -38,11 +38,8 @@ class TestGeneration(TestCase):
                 "prefs": {
                     "receives_sms": True,
                     "receives_email": False
-                },
-                "company_id": id_of("company"),
-                "email": dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
-                "age": sequence(lambda n: n + 20)
-            })
+                    }
+            }, traits=["common"])
 
             document("admin", {
                 "first": "Bill",
@@ -51,9 +48,20 @@ class TestGeneration(TestCase):
                     "receives_sms": False,
                     "receives_email": True
                 },
+            }, parent="default", traits=["versioned"])
+
+            trait("timestamped", {
+                "created": "now"
+            })
+
+            trait("common", {
                 "company_id": id_of("company"),
                 "email": dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
                 "age": sequence(lambda n: n + 20)
+            }, parent="timestamped")
+
+            trait("versioned", {
+                "v": 4
             })
         
         with factory("company", self.company_collection):
@@ -75,7 +83,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now"
         }
 
         expected2 = {
@@ -87,7 +96,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
-            "age": 22
+            "age": 22,
+            "created": "now"
         }
 
         doc1 = build("user")
@@ -105,7 +115,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now",
+            "v": 4
         }
 
         expected2 = {
@@ -117,7 +129,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Mike.Jones@test.com",
-            "age": 22
+            "age": 22,
+            "created": "now",
+            "v": 4
         }
 
         doc1 = build("user", "admin")
@@ -136,7 +150,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now"
         }
 
         self.user_collection.insert = Mock(return_value=to_return["_id"])
@@ -153,7 +168,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now"
         })
         self.user_collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)        
@@ -169,7 +185,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now",
+            "v": 4
         }
 
         self.user_collection.insert = Mock(return_value=to_return["_id"])
@@ -186,7 +204,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Mike.Jones@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now",
+            "v": 4
         })
         self.user_collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)     
@@ -202,7 +222,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now"
         }, {
             "first": "John",
             "last": "Smith",
@@ -212,7 +233,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
-            "age": 22
+            "age": 22,
+            "created": "now"
         }, {
             "first": "John",
             "last": "Smith",
@@ -222,7 +244,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
-            "age": 23
+            "age": 23,
+            "created": "now"
         }]
 
         docs = build_list(3, "user")
@@ -239,7 +262,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now",
+            "v": 4
         }, {
             "first": "Bill",
             "last": "Jones",
@@ -249,7 +274,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
-            "age": 22
+            "age": 22,
+            "created": "now",
+            "v": 4
         }, {
             "first": "Bill",
             "last": "Jones",
@@ -259,7 +286,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
-            "age": 23
+            "age": 23,
+            "created": "now",
+            "v": 4
         }]
 
         docs = build_list(3, "user", "admin")
@@ -275,10 +304,11 @@ class TestGeneration(TestCase):
             "prefs": {
                 "receives_sms": True,
                 "receives_email": False
-        },
+            },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now"
         }, {
             "_id": object_ids[1],
             "first": "John",
@@ -289,7 +319,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
-            "age": 22
+            "age": 22,
+            "created": "now"
         }, {
             "_id": object_ids[2],
             "first": "John",
@@ -300,7 +331,8 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
-            "age": 23
+            "age": 23,
+            "created": "now"
         }]
         return_docs = copy(docs)
 
@@ -326,10 +358,12 @@ class TestGeneration(TestCase):
             "prefs": {
                 "receives_sms": False,
                 "receives_email": True
-        },
+            },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
-            "age": 21
+            "age": 21,
+            "created": "now",
+            "v": 4
         }, {
             "_id": object_ids[1],
             "first": "Bill",
@@ -340,7 +374,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
-            "age": 22
+            "age": 22,
+            "created": "now",
+            "v": 4
         }, {
             "_id": object_ids[2],
             "first": "Bill",
@@ -351,7 +387,9 @@ class TestGeneration(TestCase):
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
-            "age": 23
+            "age": 23,
+            "created": "now",
+            "v": 4
         }]
         return_docs = copy(docs)
 

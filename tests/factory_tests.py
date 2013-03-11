@@ -144,6 +144,29 @@ class TestFactory(unittest.TestCase):
         self.assertDictEqual(expected, factory.build("car"))
 
 
+    def test_build_default_with_traits(self):
+        factory = Factory(self.collection)
+        factory.trait("timestamped", {
+            "created": lambda doc: datetime(2001, 1, 1, 1, 1, 1)
+        })
+        factory.trait("versioned", {
+            "v": 3
+        })
+        factory.default({
+            "wheels": 4, 
+            "make": lambda doc: "Mazda"
+        }, traits=["timestamped", "versioned"])
+
+        expected = {
+            "wheels": 4,
+            "make": "Mazda",
+            "created": datetime(2001, 1, 1, 1, 1, 1),
+            "v": 3
+        }
+
+        self.assertDictEqual(expected, factory.build())
+
+
     def test_build_with_inheritance_and_traits(self):
         factory = Factory(self.collection)
         factory.trait("timestamped", {
@@ -308,9 +331,9 @@ class TestFactory(unittest.TestCase):
 
     def test_build_without_declaring_default_document(self):
         factory = Factory(self.collection)
-        created = factory.build()
-        self.assertEqual({}, created)
-
+        with self.assertRaises(NonExistentDocumentException):
+            factory.build()
+        
 
     def test_build_named_document(self):
         def full_name(doc):
