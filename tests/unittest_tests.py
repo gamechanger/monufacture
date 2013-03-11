@@ -1,7 +1,7 @@
 import os
 from pymongo.connection import Connection
 from unittest import TestCase, TestLoader, TestResult
-from monufacture import factory, create, create_list, reset
+from monufacture import factory, create, create_list, reset, default
 from monufacture.unittest import enable_factories
 from monufacture.helpers import dependent, sequence, subdoc, id_of
 
@@ -23,7 +23,7 @@ class TestUnittestSupport(TestCase):
             enable_factories(self)
 
         def test_some_functionality(self):
-            users = create_list("user", 10)
+            users = create_list(10, "user")
             self.assertEqual(user_collection.count(), 10)
             self.assertEqual("John", users[0]['first'])
 
@@ -33,23 +33,23 @@ class TestUnittestSupport(TestCase):
             self.assertEqual("Joe", user['first'])
 
     def setUp(self):
-        factory("prefs", {
-            "receives_sms":     True,
-            "receives_email":   False
-        })
-
-        factory("company", {
-            "name": "GloboCorp"
-        }, company_collection)
-
-        factory("user", {
-            "first":        "John",
-            "last":         "Smith",
-            "prefs":        subdoc("prefs"),
-            "company_id":   id_of("company"),
-            "email":        dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
-            "age":          sequence(lambda n: n + 20)
-        }, user_collection)
+        with factory("user", user_collection):
+            default({
+                "first": "John",
+                "last": "Smith",
+                "prefs": {
+                    "receives_sms": True,
+                    "receives_email": False
+                },
+                "company_id": id_of("company"),
+                "email": dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
+                "age": sequence(lambda n: n + 20)
+            })
+        
+        with factory("company", company_collection):
+            default({
+                "name": "GloboCorp"
+            })
 
     def tearDown(self):
         reset()

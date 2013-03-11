@@ -46,7 +46,14 @@ class TestHelperFunctions(unittest.TestCase):
         create.return_value = {"_id": 1234}
         func = id_of("bob")
         self.assertEqual(1234, func())
-        create.assert_called_with("bob")
+        create.assert_called_with("bob", None)
+
+    @patch('monufacture.create')
+    def test_id_of_with_doc_name(self, create):
+        create.return_value = {"_id": 1234}
+        func = id_of("bob", "dave")
+        self.assertEqual(1234, func())
+        create.assert_called_with("bob", "dave")
 
     def test_random_text(self):
         func = random_text()

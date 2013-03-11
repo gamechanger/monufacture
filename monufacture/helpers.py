@@ -49,11 +49,11 @@ def subdoc(name):
     return build
 
 
-def id_of(name):
+def id_of(factory, document=None):
     """Creates an instance using the given named factory and returns the
     ID of the persisted record."""
     def build(*args):
-        return monufacture.create(name)["_id"]
+        return monufacture.create(factory, document)["_id"]
     return build
 
 
