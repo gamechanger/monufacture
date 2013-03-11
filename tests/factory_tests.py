@@ -1,5 +1,5 @@
 import unittest
-from monufacture.factory import Factory, NonExistentDocumentException
+from monufacture.factory import Factory, NonExistentDocumentException, FactoryDeclarationException
 from mock import Mock, call
 from bson.objectid import ObjectId
 from copy import copy
@@ -76,6 +76,51 @@ class TestFactory(unittest.TestCase):
             "age": 45
         })
 
+    def test_build_with_inheritance(self):
+        factory = Factory(self.collection)
+        factory.default({
+            "location": lambda doc: "pittsburgh"
+        })
+
+        factory.document("smith", {"last_name": "Smith"}, parent="default")
+        factory.document("bob", {
+            "first_name": lambda doc: "Bob"},
+            parent="smith")
+        factory.document("mike", {
+            "first_name": "Mike"},
+            parent="smith")
+
+        self.assertDictEqual(factory.build(), {"location":"pittsburgh"})
+        self.assertDictEqual(factory.build("smith"), {
+            "location": "pittsburgh",
+            "last_name": "Smith"
+        })
+        self.assertDictEqual(factory.build("bob"), {
+            "location": "pittsburgh",
+            "last_name": "Smith",
+            "first_name": "Bob"
+        })
+        self.assertDictEqual(factory.build("mike"), {
+            "location": "pittsburgh",
+            "last_name": "Smith",
+            "first_name": "Mike"
+        })
+
+        # Lets also test the overrides still work
+        self.assertDictEqual(factory.build("bob", last_name="jones"), {
+            "location": "pittsburgh",
+            "last_name": "jones",
+            "first_name": "Bob"
+        })
+        self.assertDictEqual(factory.build("mike", other="thing"), {
+            "location": "pittsburgh",
+            "last_name": "Smith",
+            "first_name": "Mike",
+            "other": "thing"
+        })
+        
+
+
     def test_successive_builds_with_different_overrides(self):
         factory = Factory(self.collection)
         factory.default({
@@ -95,7 +140,6 @@ class TestFactory(unittest.TestCase):
             "last_name": "Jones",
             "age": 32
         })
-
 
 
     def test_create_simple(self):
@@ -209,6 +253,11 @@ class TestFactory(unittest.TestCase):
             "full_name": "Mike Smith",
             "age": 45
         })
+
+    def test_document_cannot_be_named_default(self):
+        factory = Factory(self.collection)
+        with self.assertRaises(FactoryDeclarationException):
+            factory.document('default', {"some": 'thing'})
 
     def test_build_nonexistent_document(self):
         factory = Factory(self.collection)

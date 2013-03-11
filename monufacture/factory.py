@@ -6,20 +6,32 @@ class Factory(object):
         self.created_ids = []
         self.default_document = {}
         self.documents = {}
+        self.parents = {}
+
+    def _build_document(self, name=None):
+        if not name or name == "default":
+            doc = self.default_document
+        else:
+            doc = self.documents[name]
+
+        if name in self.parents:
+            spec = self._build_document(self.parents[name])
+            spec.update(doc)
+        else:
+            spec = DynamicDict(doc)
+
+        return spec
 
     def build(self, name=None, **overrides):
         """Builds an instance of the document described by the attributes
         used to create this factory without actually persisting it to 
         the database. Any overrides provided are used in preference to 
         those attributes associated with the factory."""
-        doc = self.default_document
-        if name:
-            if name not in self.documents:
-                raise NonExistentDocumentException(name)
-
-            doc = self.documents[name]
-
-        spec = DynamicDict(doc)
+        if name and name not in self.documents:
+            raise NonExistentDocumentException(name)
+        
+        spec = self._build_document(name)
+        
         spec.update(overrides)
         return spec.resolve()
 
@@ -43,7 +55,13 @@ class Factory(object):
     def default(self, attrs):
         self.default_document = attrs
 
-    def document(self, name, attrs):
+    def document(self, name, attrs, parent=None):
+        if name == 'default':
+            raise FactoryDeclarationException("Cannot register a factory document with the name 'default'")
+
+        if parent:
+            self.parents[name] = parent
+
         self.documents[name] = attrs
 
 
@@ -55,3 +73,8 @@ class NonExistentDocumentException(Exception):
 
     def __str__(self):
         return "Document declaration not found: \"%s\"" % self.name
+
+class FactoryDeclarationException(Exception):
+    """Raised when an error has been detected in the declaration of a 
+    factory."""
+    pass
