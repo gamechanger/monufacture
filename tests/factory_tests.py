@@ -3,6 +3,7 @@ from monufacture.factory import Factory, NonExistentDocumentException, FactoryDe
 from mock import Mock, call
 from bson.objectid import ObjectId
 from copy import copy
+from datetime import datetime
 
 
 class TestFactory(unittest.TestCase):
@@ -119,6 +120,82 @@ class TestFactory(unittest.TestCase):
             "other": "thing"
         })
         
+
+    def test_build_with_traits(self):
+        factory = Factory(self.collection)
+        factory.trait("timestamped", {
+            "created": lambda doc: datetime(2001, 1, 1, 1, 1, 1)
+        })
+        factory.trait("versioned", {
+            "v": 3
+        })
+        factory.document("car", {
+            "wheels": 4, 
+            "make": lambda doc: "Mazda"
+        }, traits=["timestamped", "versioned"])
+
+        expected = {
+            "wheels": 4,
+            "make": "Mazda",
+            "created": datetime(2001, 1, 1, 1, 1, 1),
+            "v": 3
+        }
+
+        self.assertDictEqual(expected, factory.build("car"))
+
+
+    def test_build_with_inheritance_and_traits(self):
+        factory = Factory(self.collection)
+        factory.trait("timestamped", {
+            "created": lambda doc: datetime(2001, 1, 1, 1, 1, 1)
+        })
+        factory.trait("versioned", {
+            "v": 3
+        })
+        factory.document("car", {
+            "wheels": 4
+        }, traits=["timestamped", "versioned"])
+        factory.document("mazda", {
+            "make": lambda doc: "Mazda"
+        }, parent="car")
+
+        expected = {
+            "wheels": 4,
+            "make": "Mazda",
+            "created": datetime(2001, 1, 1, 1, 1, 1),
+            "v": 3
+        }
+
+        self.assertDictEqual(expected, factory.build("mazda"))
+
+
+    def test_build_with_trait_inheritance(self):
+        # this is testing inheritance of traits, not traits plus doc inheritance
+        factory = Factory(self.collection)
+        factory.trait("timestamped", {
+            "created": lambda doc: datetime(2001, 1, 1, 1, 1, 1)
+        })
+        
+        factory.trait("versioned", {
+            "v": 3
+        }, parent="timestamped")
+
+        factory.document("car", {
+            "wheels": 4
+        }, traits=["versioned"])
+        
+        factory.document("mazda", {
+            "make": lambda doc: "Mazda"
+        }, parent="car")
+
+        expected = {
+            "wheels": 4,
+            "make": "Mazda",
+            "created": datetime(2001, 1, 1, 1, 1, 1),
+            "v": 3
+        }
+
+        self.assertDictEqual(expected, factory.build("mazda"))
 
 
     def test_successive_builds_with_different_overrides(self):

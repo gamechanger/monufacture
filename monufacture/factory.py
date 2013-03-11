@@ -6,7 +6,18 @@ class Factory(object):
         self.created_ids = []
         self.default_document = {}
         self.documents = {}
-        self.parents = {}
+        self.document_parents = {}
+        self.document_traits = {}
+        self.traits = {}
+        self.trait_parents = {}
+
+    def _build_trait(self, name):
+        if name in self.trait_parents:
+            spec = self._build_trait(self.trait_parents[name])
+            spec.update(self.traits[name])
+        else:
+            spec = self.traits[name]
+        return spec
 
     def _build_document(self, name=None):
         if not name or name == "default":
@@ -14,11 +25,15 @@ class Factory(object):
         else:
             doc = self.documents[name]
 
-        if name in self.parents:
-            spec = self._build_document(self.parents[name])
-            spec.update(doc)
+        if name in self.document_parents:
+            spec = self._build_document(self.document_parents[name])
         else:
-            spec = DynamicDict(doc)
+            spec = DynamicDict()
+        
+        if name in self.document_traits:
+            for trait in self.document_traits[name]:
+                spec.update(self._build_trait(trait))
+        spec.update(doc)
 
         return spec
 
@@ -53,16 +68,25 @@ class Factory(object):
             self.collection.remove(self.created_ids.pop())
 
     def default(self, attrs):
+        """Sets the default document dict for the factory."""
         self.default_document = attrs
 
-    def document(self, name, attrs, parent=None):
+    def document(self, name, attrs, parent=None, traits=[]):
+        """Declares a named document type within the factory."""
         if name == 'default':
             raise FactoryDeclarationException("Cannot register a factory document with the name 'default'")
 
         if parent:
-            self.parents[name] = parent
+            self.document_parents[name] = parent
+
+        self.document_traits[name] = traits
 
         self.documents[name] = attrs
+
+    def trait(self, name, attrs, parent=None):
+        self.traits[name] = attrs
+        if parent:
+            self.trait_parents[name] = parent
 
 
 class NonExistentDocumentException(Exception):

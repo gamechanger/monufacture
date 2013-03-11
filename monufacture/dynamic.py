@@ -30,7 +30,7 @@ class DynamicList(list):
     function, and if so return the result of calling that function.
     Note that each function is only called once."""
 
-    def __init__(self, inner_list, head=None, *args, **kwargs):
+    def __init__(self, inner_list={}, head=None, *args, **kwargs):
         super(DynamicList, self).__init__(*args, **kwargs)
         self.head = self if not head else head
         self.extend(inner_list)
@@ -57,7 +57,7 @@ class DynamicDict(dict):
     function, and if so return the result of calling that function.
     Note that each function is only called once."""
 
-    def __init__(self, inner_dict, head=None, *args, **kwargs):
+    def __init__(self, inner_dict={}, head=None, *args, **kwargs):
         super(DynamicDict, self).__init__(*args, **kwargs)
         self.head = self if not head else head
         self.update(inner_dict)
