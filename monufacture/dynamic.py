@@ -5,22 +5,24 @@ def getitem(self, index, superclass):
     """Override __getitem__ implementation shared by both dynamic dicts
     and lists."""
 
-    inner = superclass.__getitem__(index)
+    value = superclass.__getitem__(index)
 
     # If the value is a function, invoke it to get, set and return
     # the value.
-    if isinstance(inner, FunctionType):
-        self[index] = inner(self)
+    if isinstance(value, FunctionType):
+        value = value(self)
 
     # If the value is an embedded dict, we need to wrap it in a
     # DynamicDict instance.
-    elif isinstance(inner, dict):
-        self[index] = DynamicDict(inner, head=self.head)
+    if isinstance(value, dict):
+        value = DynamicDict(value, head=self.head)
 
     # If the value is an embedded list, we need to wrap it in a
     # DynamicList instance.
-    elif isinstance(inner, list):
-        self[index] = DynamicList(inner, head=self.head)
+    if isinstance(value, list):
+        value = DynamicList(value, head=self.head)
+
+    self[index] = value
 
     return superclass.__getitem__(index)
 

@@ -42,6 +42,29 @@ class TestDynamicDict(TestCase):
         self.assertEqual("some text", d["astring"])
         self.assertEqual("func text", d["sub"]["afunc"])
 
+
+    def test_dict_with_function_values_returning_dict_with_function_values(self):
+        def other_func(node):
+            self.assertEqual(d['sub']['afunc'], node)
+            self.assertEqual(d, node.head)
+            return "func text"            
+
+        def some_func(node):
+            self.assertEqual(d['sub'], node)
+            self.assertEqual(d, node.head)
+            return {"nested": other_func}
+
+        d = DynamicDict({
+            "astring": "some text",
+            "sub": {
+                "afunc": some_func
+            }
+        })
+
+        self.assertEqual("some text", d["astring"])
+        self.assertEqual("func text", d["sub"]["afunc"]["nested"])
+
+
     def test_dict_with_list_nested_function_values(self):
         def some_func(node):
             self.assertEqual(d, node.head)
