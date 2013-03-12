@@ -9,6 +9,25 @@ class Factory(object):
         self.document_traits = {}
         self.traits = {}
         self.trait_parents = {}
+        self.fragments = {}
+        self.fragment_traits = {}
+        self.fragment_parents = {}
+
+    def _apply_traits(self, doc, traits):
+        for trait in traits:
+            doc.update(self._build_trait(trait))
+
+    def _build_fragment(self, name):
+        if name in self.fragment_parents:
+            spec = self._build_fragment(self.fragment_parents[name])
+            spec.update(self.fragments[name])
+        else:
+            spec = self.fragments[name]
+
+        if name in self.fragment_traits:
+            self._apply_traits(spec, self.fragment_traits[name])
+
+        return spec
 
     def _build_trait(self, name):
         if name in self.trait_parents:
@@ -19,7 +38,6 @@ class Factory(object):
         return spec
 
     def _build_document(self, name):
-        print name
         doc = self.documents[name]
 
         if name in self.document_parents:
@@ -28,8 +46,8 @@ class Factory(object):
             spec = DynamicDict()
         
         if name in self.document_traits:
-            for trait in self.document_traits[name]:
-                spec.update(self._build_trait(trait))
+            self._apply_traits(spec, self.document_traits[name])
+
         spec.update(doc)
 
         return spec
@@ -85,10 +103,24 @@ class Factory(object):
         self.documents[name] = attrs
 
     def trait(self, name, attrs, parent=None):
+        """Declares a reusable trait hash which can be referenced in
+        documents."""
         self.traits[name] = attrs
         if parent:
             self.trait_parents[name] = parent
 
+    def fragment(self, name, attrs, parent=None, traits=[]):
+        if parent:
+            self.fragment_parents[name] = parent
+
+        self.fragment_traits[name] = traits
+        self.fragments[name] = attrs
+
+    def embed(self, name):
+        def build(*args):
+            return self._build_fragment(name)
+
+        return build
 
 class NonExistentDocumentException(Exception):
     """Raised when the caller attempts to access a non-existent

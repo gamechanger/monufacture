@@ -1,5 +1,5 @@
 from unittest import TestCase
-from monufacture import factory, trait, default, document, build, create, build_list, create_list, cleanup, reset, FactoryContextException
+from monufacture import factory, trait, default, document, fragment, embed, build, create, build_list, create_list, cleanup, reset, FactoryContextException
 from monufacture.helpers import dependent, sequence, id_of, date
 from mock import Mock
 from bson.objectid import ObjectId
@@ -32,22 +32,26 @@ class TestGeneration(TestCase):
         self.company_collection.find_one = Mock(return_value={'_id': self.company_id})
 
         with factory("user", self.user_collection):
+            fragment("prefs_email", {
+                "receives_sms": True,
+                "receives_email": False
+            }, traits=['versioned'])
+
+            fragment("prefs_sms", {
+                "receives_sms": False,
+                "receives_email": True                
+            }, traits=['versioned'])
+
             default({
                 "first": "John",
                 "last": "Smith",
-                "prefs": {
-                    "receives_sms": True,
-                    "receives_email": False
-                    }
+                "prefs": embed("prefs_email")
             }, traits=["common"])
 
             document("admin", {
                 "first": "Bill",
                 "last": "Jones",
-                "prefs": {
-                    "receives_sms": False,
-                    "receives_email": True
-                },
+                "prefs": embed("prefs_sms"),
             }, parent="default", traits=["versioned"])
 
             trait("timestamped", {
@@ -79,7 +83,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
@@ -92,7 +97,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
@@ -111,7 +117,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
@@ -125,7 +132,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Mike.Jones@test.com",
@@ -146,7 +154,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
@@ -164,7 +173,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Mike.Smith@test.com",
@@ -181,7 +191,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
@@ -200,7 +211,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Mike.Jones@test.com",
@@ -218,7 +230,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
@@ -229,7 +242,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
@@ -240,7 +254,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
@@ -258,7 +273,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
@@ -270,7 +286,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
@@ -282,7 +299,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
@@ -303,7 +321,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
@@ -315,7 +334,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
@@ -327,7 +347,8 @@ class TestGeneration(TestCase):
             "last": "Smith",
             "prefs": {
                 "receives_sms": True,
-                "receives_email": False
+                "receives_email": False,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "John.Smith@test.com",
@@ -357,7 +378,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
@@ -370,7 +392,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",
@@ -383,7 +406,8 @@ class TestGeneration(TestCase):
             "last": "Jones",
             "prefs": {
                 "receives_sms": False,
-                "receives_email": True
+                "receives_email": True,
+                "v": 4
             },
             "company_id": self.company_id,
             "email": "Bill.Jones@test.com",

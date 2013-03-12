@@ -242,6 +242,73 @@ class TestFactory(unittest.TestCase):
         })
 
 
+    def test_fragments(self):
+        factory = Factory(self.collection)
+        factory.fragment("alert_prefs", {
+            "emails": True
+        })
+        factory.document("user", {
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32, 
+            "alerts": factory.embed("alert_prefs")
+        })
+        self.assertDictEqual(factory.build("user"), {
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "alerts": {
+                "emails": True
+            }
+        })
+
+
+    def test_fragments_with_traits(self):
+        factory = Factory(self.collection)
+        factory.trait('versioned', {"v": 5})
+        factory.fragment("alert_prefs", {
+            "emails": True
+        }, traits=['versioned'])
+        factory.document("user", {
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32, 
+            "alerts": factory.embed("alert_prefs")
+        })
+        self.assertDictEqual(factory.build("user"), {
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "alerts": {
+                "emails": True,
+                "v": 5
+            }
+        })
+
+
+    def test_fragments_with_inheritance(self):
+        factory = Factory(self.collection)
+        factory.fragment('versioned', {"v": 5})
+        factory.fragment("alert_prefs", {
+            "emails": True
+        }, parent='versioned')
+        factory.document("user", {
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32, 
+            "alerts": factory.embed("alert_prefs")
+        })
+        self.assertDictEqual(factory.build("user"), {
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "alerts": {
+                "emails": True,
+                "v": 5
+            }
+        })
+
+
     def test_create_simple(self):
         to_return = {
             "_id": ObjectId(),
