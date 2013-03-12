@@ -75,7 +75,7 @@ class Factory(object):
             raise IOError("Cannot create an instance when no collection is provided.")
 
         doc = self.build(name, **overrides)
-        doc_id = self.collection.insert(doc)
+        doc_id = self.collection.insert(doc, safe=True)
         self.created_ids.append(doc_id)
         return self.collection.find_one(doc_id)
 
@@ -83,7 +83,7 @@ class Factory(object):
     def cleanup(self):
         """Cleanup all instances created by this factory."""
         while len(self.created_ids) > 0:
-            self.collection.remove(self.created_ids.pop())
+            self.collection.remove(self.created_ids.pop(), safe=True)
 
     def default(self, attrs, traits=[]):
         """Sets the default document dict for the factory."""

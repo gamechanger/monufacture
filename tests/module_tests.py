@@ -180,7 +180,7 @@ class TestGeneration(TestCase):
             "email": "Mike.Smith@test.com",
             "age": 21,
             "created": "now"
-        })
+        }, safe=True)
         self.user_collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)        
 
@@ -219,7 +219,7 @@ class TestGeneration(TestCase):
             "age": 21,
             "created": "now",
             "v": 4
-        })
+        }, safe=True)
         self.user_collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)     
 
@@ -357,7 +357,7 @@ class TestGeneration(TestCase):
         }]
         return_docs = copy(docs)
 
-        def object_id_returns(*args):
+        def object_id_returns(*args, **kwargs):
             return object_ids.pop(0)
 
         def doc_returns(*args):
@@ -417,7 +417,7 @@ class TestGeneration(TestCase):
         }]
         return_docs = copy(docs)
 
-        def object_id_returns(*args):
+        def object_id_returns(*args, **kwargs):
             return object_ids.pop(0)
 
         def doc_returns(*args):
@@ -437,5 +437,5 @@ class TestGeneration(TestCase):
         create("user")
         cleanup()
 
-        self.user_collection.remove.assert_called_with(object_id)
-        self.company_collection.remove.assert_called_with(self.company_id)
+        self.user_collection.remove.assert_called_with(object_id, safe=True)
+        self.company_collection.remove.assert_called_with(self.company_id, safe=True)
