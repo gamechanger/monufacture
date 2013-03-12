@@ -70,7 +70,7 @@ def build_list(number, factory, document=None):
 def create_list(count, factory, document=None):
     """Creates a list of `count` instances of the named document using the 
     associated factory."""
-    return [create(factory) for x in range(count)]
+    return [create(factory, document) for x in range(count)]
 
 
 # Cleanup methods
