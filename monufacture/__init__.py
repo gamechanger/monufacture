@@ -83,6 +83,7 @@ def cleanup():
 def reset():
     """Resets Monufacturer, removing all registered factories. Only really 
     here for testing purposes."""
+    cleanup()
     factories.clear()
 
 
