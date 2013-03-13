@@ -25,6 +25,10 @@ class TestDeclaration(TestCase):
         with self.assertRaises(FactoryContextException):
             document("test", {"a": "b"})
 
+    def test_fragment_not_callable_outside_factory_context(self):
+        with self.assertRaises(FactoryContextException):
+            fragment("test", {"a": "b"})
+
 class TestGeneration(TestCase):
     """Tests for "generation"-type methods - those which create new 
     document instances using registered factories."""
@@ -34,6 +38,10 @@ class TestGeneration(TestCase):
         self.company_collection = Mock()
         self.company_collection.insert = Mock(return_value=self.company_id)
         self.company_collection.find_one = Mock(return_value={'_id': self.company_id})
+
+        trait("versioned", {
+            "v": 4
+        })
 
         with factory("user", self.user_collection):
             fragment("prefs_email", {
@@ -68,9 +76,6 @@ class TestGeneration(TestCase):
                 "age": sequence(lambda n: n + 20)
             }, parent="timestamped")
 
-            trait("versioned", {
-                "v": 4
-            })
         
         with factory("company", self.company_collection):
             default({

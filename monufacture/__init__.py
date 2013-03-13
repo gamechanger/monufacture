@@ -1,9 +1,10 @@
-from factory import Factory
+from factory import Factory, Trait
 from contextlib import contextmanager
 from threading import local
 
 # Registry for all factories
 factories = {}
+traits = {}
 
 local = local()
 
@@ -11,7 +12,7 @@ local = local()
 @contextmanager
 def factory(name, collection):
     """Declares a new named factory with the given attributes."""
-    factory = Factory(collection)
+    factory = Factory(collection, global_traits=traits)
     factories[name] = factory
 
     # Set the context for other methods
@@ -35,7 +36,10 @@ def document(name, attrs, parent=None, traits=[]):
 
 
 def trait(name, attrs, parent=None):
-    _get_factory().trait(name, attrs, parent)
+    if hasattr(local, 'working_factory'):
+        _get_factory().trait(name, attrs, parent)
+    else:
+        traits[name] = Trait(attrs, parent)
 
 
 def fragment(name, attrs, parent=None, traits=[]):
@@ -85,6 +89,7 @@ def reset():
     here for testing purposes."""
     cleanup()
     factories.clear()
+    traits.clear()
 
 
 class FactoryContextException(Exception):

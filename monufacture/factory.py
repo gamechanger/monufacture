@@ -1,54 +1,73 @@
 from dynamic import DynamicDict
 
+class Document(object):
+    def __init__(self, attrs, parent=None, traits=[]):
+        self.attrs = attrs
+        self.parent = parent
+        self.traits = traits
+
+
+class Trait(object):
+    def __init__(self, attrs, parent=None):
+        self.attrs = attrs
+        self.parent = parent
+
+
+class Fragment(object):
+    def __init__(self, attrs, parent=None, traits=[]):
+        self.attrs = attrs
+        self.parent = parent
+        self.traits = traits
+
+
 class Factory(object):
-    def __init__(self, collection=None):
+    def __init__(self, collection=None, global_traits={}):
         self.collection = collection
         self.created_ids = []
         self.documents = {}
-        self.document_parents = {}
-        self.document_traits = {}
         self.traits = {}
-        self.trait_parents = {}
         self.fragments = {}
-        self.fragment_traits = {}
-        self.fragment_parents = {}
+        self.global_traits = global_traits
+        
 
     def _apply_traits(self, doc, traits):
         for trait in traits:
             doc.update(self._build_trait(trait))
 
     def _build_fragment(self, name):
-        if name in self.fragment_parents:
-            spec = self._build_fragment(self.fragment_parents[name])
-            spec.update(self.fragments[name])
+        fragment = self.fragments[name]
+        if fragment.parent:
+            spec = self._build_fragment(fragment.parent)
+            spec.update(fragment.attrs)
         else:
-            spec = self.fragments[name]
+            spec = fragment.attrs
 
-        if name in self.fragment_traits:
-            self._apply_traits(spec, self.fragment_traits[name])
+        if fragment.traits:
+            self._apply_traits(spec, fragment.traits)
 
         return spec
 
     def _build_trait(self, name):
-        if name in self.trait_parents:
-            spec = self._build_trait(self.trait_parents[name])
-            spec.update(self.traits[name])
+        trait = self.traits.get(name) or self.global_traits.get(name)
+        if trait.parent:
+            spec = self._build_trait(trait.parent)
+            spec.update(trait.attrs)
         else:
-            spec = self.traits[name]
+            spec = trait.attrs
         return spec
 
     def _build_document(self, name):
         doc = self.documents[name]
 
-        if name in self.document_parents:
-            spec = self._build_document(self.document_parents[name])
+        if doc.parent:
+            spec = self._build_document(doc.parent)
         else:
             spec = DynamicDict()
         
-        if name in self.document_traits:
-            self._apply_traits(spec, self.document_traits[name])
+        if doc.traits:
+            self._apply_traits(spec, doc.traits)
 
-        spec.update(doc)
+        spec.update(doc.attrs)
 
         return spec
 
@@ -87,34 +106,22 @@ class Factory(object):
 
     def default(self, attrs, traits=[]):
         """Sets the default document dict for the factory."""
-        self.document_traits["default"] = traits
-        self.documents["default"] = attrs
+        self.documents["default"] = Document(attrs, traits=traits)
 
     def document(self, name, attrs, parent=None, traits=[]):
         """Declares a named document type within the factory."""
         if name == 'default':
             raise FactoryDeclarationException("Cannot register a factory document with the name 'default'")
 
-        if parent:
-            self.document_parents[name] = parent
-
-        self.document_traits[name] = traits
-
-        self.documents[name] = attrs
+        self.documents[name] = Document(attrs, parent, traits)
 
     def trait(self, name, attrs, parent=None):
         """Declares a reusable trait hash which can be referenced in
         documents."""
-        self.traits[name] = attrs
-        if parent:
-            self.trait_parents[name] = parent
+        self.traits[name] = Trait(attrs, parent)
 
     def fragment(self, name, attrs, parent=None, traits=[]):
-        if parent:
-            self.fragment_parents[name] = parent
-
-        self.fragment_traits[name] = traits
-        self.fragments[name] = attrs
+        self.fragments[name] = Fragment(attrs, parent, traits)
 
     def embed(self, name):
         def build(*args):

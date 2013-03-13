@@ -1,5 +1,5 @@
 import unittest
-from monufacture.factory import Factory, NonExistentDocumentException, FactoryDeclarationException
+from monufacture.factory import Factory, NonExistentDocumentException, FactoryDeclarationException, Trait
 from mock import Mock, call
 from bson.objectid import ObjectId
 from copy import copy
@@ -165,6 +165,32 @@ class TestFactory(unittest.TestCase):
         }
 
         self.assertDictEqual(expected, factory.build())
+
+
+    def test_build_default_with_global_traits(self):
+        traits = {}
+        factory = Factory(self.collection, global_traits=traits)
+        traits["timestamped"] = Trait({
+            "created": lambda doc: datetime(2001, 1, 1, 1, 1, 1)
+        })
+        traits["versioned"] = Trait({
+            "v": 3
+        }, parent="timestamped")
+
+        factory.default({
+            "wheels": 4, 
+            "make": lambda doc: "Mazda"
+        }, traits=["versioned"])
+
+        expected = {
+            "wheels": 4,
+            "make": "Mazda",
+            "created": datetime(2001, 1, 1, 1, 1, 1),
+            "v": 3
+        }
+
+        self.assertDictEqual(expected, factory.build())
+
 
 
     def test_build_with_inheritance_and_traits(self):
