@@ -280,6 +280,57 @@ class TestGeneration(TestCase):
 
         self.assertEquals(expected_list, docs)
 
+
+    def test_build_list_of_named_documents_with_overrides(self):
+        expected_list = [{
+            "first": "Bill",
+            "last": "Jones",
+            "prefs": {
+                "receives_sms": False,
+                "receives_email": True,
+                "v": 4
+            },
+            "company_id": self.company_id,
+            "email": "Bill.Jones@test.com",
+            "age": 21,
+            "created": "then",
+            "favorite_color": "green",
+            "v": 4
+        }, {
+            "first": "Bill",
+            "last": "Jones",
+            "prefs": {
+                "receives_sms": False,
+                "receives_email": True,
+                "v": 4
+            },
+            "company_id": self.company_id,
+            "email": "Bill.Jones@test.com",
+            "age": 22,
+            "created": "then",
+            "favorite_color": "green",
+            "v": 4
+        }, {
+            "first": "Bill",
+            "last": "Jones",
+            "prefs": {
+                "receives_sms": False,
+                "receives_email": True,
+                "v": 4
+            },
+            "company_id": self.company_id,
+            "email": "Bill.Jones@test.com",
+            "age": 23,
+            "created": "then",
+            "favorite_color": "green",
+            "v": 4
+        }]
+
+        docs = build_list(3, "user", "admin", created="then", favorite_color="green")
+
+        self.assertEquals(expected_list, docs)
+
+
     def test_create_list(self):
         expected_docs = [{
             "first": "John",
@@ -367,6 +418,57 @@ class TestGeneration(TestCase):
         }]
         
         created_list = create_list(3, "user", "admin")
+
+        for expected, actual in zip(expected_docs, created_list):
+            self.assertDictContainsSubset(expected, actual)
+
+
+    def test_create_list_of_named_documents_with_overrides(self):
+        expected_docs = [{
+            "first": "Bill",
+            "last": "Jones",
+            "prefs": {
+                "receives_sms": False,
+                "receives_email": True,
+                "v": 4
+            },
+            "company_id": self.company_id,
+            "email": "Bill.Jones@test.com",
+            "age": 21,
+            "created": "then",
+            "favorite_color": "green",
+            "v": 4
+        }, {
+            "first": "Bill",
+            "last": "Jones",
+            "prefs": {
+                "receives_sms": False,
+                "receives_email": True,
+                "v": 4
+            },
+            "company_id": self.company_id,
+            "email": "Bill.Jones@test.com",
+            "age": 22,
+            "created": "then",
+            "favorite_color": "green",
+            "v": 4
+        }, {
+            "first": "Bill",
+            "last": "Jones",
+            "prefs": {
+                "receives_sms": False,
+                "receives_email": True,
+                "v": 4
+            },
+            "company_id": self.company_id,
+            "email": "Bill.Jones@test.com",
+            "age": 23,
+            "created": "then",
+            "favorite_color": "green",
+            "v": 4
+        }]
+        
+        created_list = create_list(3, "user", "admin", created="then", favorite_color="green")
 
         for expected, actual in zip(expected_docs, created_list):
             self.assertDictContainsSubset(expected, actual)

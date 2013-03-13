@@ -61,16 +61,16 @@ def build(factory, document=None, **overrides):
     return factories[factory].build(document, **overrides)
 
 
-def build_list(number, factory, document=None):
+def build_list(number, factory, document=None, **overrides):
     """Builds a list of `count` instances of the named document using the 
     associated factory."""
-    return [build(factory, document) for x in range(number)]
+    return [build(factory, document, **overrides) for x in range(number)]
 
 
-def create_list(count, factory, document=None):
+def create_list(count, factory, document=None, **overrides):
     """Creates a list of `count` instances of the named document using the 
     associated factory."""
-    return [create(factory, document) for x in range(count)]
+    return [create(factory, document, **overrides) for x in range(count)]
 
 
 # Cleanup methods
