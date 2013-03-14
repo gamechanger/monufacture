@@ -289,6 +289,34 @@ class TestFactory(unittest.TestCase):
         })
 
 
+    def test_list_fragments(self):
+        factory = Factory(self.collection)
+        factory.fragment("alert_prefs", {
+            "emails": True
+        })
+        factory.fragment("alert_list", [
+            "thing",
+            factory.embed("alert_prefs")
+        ])
+        factory.document("user", {
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32, 
+            "alerts": factory.embed("alert_list")
+        })
+        self.assertDictEqual(factory.build("user"), {
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "alerts": [
+                "thing",
+                {
+                    "emails": True
+                }
+            ]
+        })
+
+
     def test_fragments_with_traits(self):
         factory = Factory(self.collection)
         factory.trait('versioned', {"v": 5})
