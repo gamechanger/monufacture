@@ -173,3 +173,12 @@ def union(*fns):
             out += fn(*args)
         return out
     return build
+
+
+def one_of(*values):
+    """Provides a function which returns one of the given values at
+    random. Useful for getting a range of different but valid
+    field values on a list of document instances."""
+    def build(*args):
+        return random.choice(values)
+    return build

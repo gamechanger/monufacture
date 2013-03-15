@@ -1,7 +1,7 @@
 from freezegun import freeze_time
 import unittest
 import monufacture.dynamic
-from monufacture.helpers import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id, union
+from monufacture.helpers import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id, union, one_of
 from mock import patch
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -166,3 +166,8 @@ class TestHelperFunctions(unittest.TestCase):
         func = object_id()
         d = func()
         self.assertIsInstance(d, ObjectId)
+
+    def test_one_of(self):
+        func = one_of(1, 2, 3, 4, 5)
+        vals = [func() for x in range(10000)]
+        self.assertEqual(set(vals), set([1, 2, 3, 4, 5]))
