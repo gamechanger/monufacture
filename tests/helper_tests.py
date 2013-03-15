@@ -1,7 +1,7 @@
 from freezegun import freeze_time
 import unittest
 import monufacture.dynamic
-from monufacture.helpers import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id
+from monufacture.helpers import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id, union
 from mock import patch
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -156,6 +156,11 @@ class TestHelperFunctions(unittest.TestCase):
     def test_list_of(self):
         func = lambda x: x
         self.assertEqual(list_of(func, 5)('a'), ['a'] * 5)
+
+    def test_union(self):
+        func_a = lambda: [1, 2, 3]
+        func_b = lambda: [4, 5, 6]
+        self.assertEqual(union(func_a, func_b)(), [1, 2, 3, 4, 5, 6])
 
     def test_object_id(self):
         func = object_id()

@@ -161,3 +161,15 @@ def object_id():
     def build(*args):
         return ObjectId()
     return build
+
+
+def union(*fns):
+    """Allows the list output of other helper functions to be unioned
+    together in order to be set as a single attribute value. E.g.
+    Unioning the output of n list_of helper calls."""
+    def build(*args):
+        out = []
+        for fn in fns:
+            out += fn(*args)
+        return out
+    return build
