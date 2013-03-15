@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="Monufacture",
-    version="0.2.4",
+    version="0.2.5",
     author="Tom Leach",
     author_email="tom@leach.it",
     description="A lightweight factory framework for creating / tearing " +
