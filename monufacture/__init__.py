@@ -31,7 +31,7 @@ def default(attrs, traits=[]):
     _get_factory().default(attrs, traits)
 
 
-def document(name, attrs, parent=None, traits=[]):
+def document(name, attrs=None, parent=None, traits=[]):
     _get_factory().document(name, attrs, parent, traits)
 
 
@@ -42,7 +42,7 @@ def trait(name, attrs, parent=None):
         traits[name] = Trait(attrs, parent)
 
 
-def fragment(name, attrs, parent=None, traits=[]):
+def fragment(name, attrs=None, parent=None, traits=[]):
     _get_factory().fragment(name, attrs, parent, traits)
 
 

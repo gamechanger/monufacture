@@ -27,7 +27,7 @@ class Factory(object):
         self.documents = {}
         self.traits = {}
         self.fragments = {}
-        self.global_traits = global_traits
+        self.global_traits = global_traits  
         
 
     def _apply_traits(self, doc, traits):
@@ -108,20 +108,20 @@ class Factory(object):
         """Sets the default document dict for the factory."""
         self.documents["default"] = Document(attrs, traits=traits)
 
-    def document(self, name, attrs, parent=None, traits=[]):
+    def document(self, name, attrs=None, parent=None, traits=[]):
         """Declares a named document type within the factory."""
         if name == 'default':
             raise FactoryDeclarationException("Cannot register a factory document with the name 'default'")
 
-        self.documents[name] = Document(attrs, parent, traits)
+        self.documents[name] = Document(attrs or {}, parent, traits)
 
     def trait(self, name, attrs, parent=None):
         """Declares a reusable trait hash which can be referenced in
         documents."""
         self.traits[name] = Trait(attrs, parent)
 
-    def fragment(self, name, attrs, parent=None, traits=[]):
-        self.fragments[name] = Fragment(attrs, parent, traits)
+    def fragment(self, name, attrs=None, parent=None, traits=[]):
+        self.fragments[name] = Fragment(attrs or {}, parent, traits)
 
     def embed(self, name):
         def build(*args):

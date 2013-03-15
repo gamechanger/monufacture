@@ -144,6 +144,24 @@ class TestFactory(unittest.TestCase):
         self.assertDictEqual(expected, factory.build("car"))
 
 
+    def test_build_with_only_traits(self):
+        factory = Factory(self.collection)
+        factory.trait("timestamped", {
+            "created": lambda doc: datetime(2001, 1, 1, 1, 1, 1)
+        })
+        factory.trait("versioned", {
+            "v": 3
+        })
+        factory.document("car", traits=["timestamped", "versioned"])
+
+        expected = {
+            "created": datetime(2001, 1, 1, 1, 1, 1),
+            "v": 3
+        }
+
+        self.assertDictEqual(expected, factory.build("car"))
+
+
     def test_build_default_with_traits(self):
         factory = Factory(self.collection)
         factory.trait("timestamped", {
@@ -335,6 +353,26 @@ class TestFactory(unittest.TestCase):
             "age": 32,
             "alerts": {
                 "emails": True,
+                "v": 5
+            }
+        })
+
+
+    def test_fragments_with_only_traits(self):
+        factory = Factory(self.collection)
+        factory.trait('versioned', {"v": 5})
+        factory.fragment("alert_prefs", traits=['versioned'])
+        factory.document("user", {
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32, 
+            "alerts": factory.embed("alert_prefs")
+        })
+        self.assertDictEqual(factory.build("user"), {
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "alerts": {
                 "v": 5
             }
         })

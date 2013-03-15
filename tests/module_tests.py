@@ -54,6 +54,8 @@ class TestGeneration(TestCase):
                 "receives_email": True                
             }, traits=['versioned'])
 
+            fragment("empty_prefs", traits=['versioned'])
+
             default({
                 "first": "John",
                 "last": "Smith",
@@ -65,6 +67,8 @@ class TestGeneration(TestCase):
                 "last": "Jones",
                 "prefs": embed("prefs_sms"),
             }, parent="default", traits=["versioned"])
+
+            document("nameless", parent="default", traits=["versioned"])
 
             trait("timestamped", {
                 "created": "now"
