@@ -1,7 +1,7 @@
 from freezegun import freeze_time
 import unittest
 import monufacture.dynamic
-from monufacture.helpers import sequence, dependent, id_of, text, random_text, dbref_to, date, ago, from_now, list_of, object_id, union, one_of
+from monufacture.helpers import sequence, dependent, id_of, text, random_text, dbref_to, date, now, ago, from_now, list_of, object_id, union, one_of
 from mock import patch, Mock
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -50,8 +50,9 @@ class TestHelperFunctions(unittest.TestCase):
 
     @patch('monufacture.helpers.random_text')
     def test_text(self, random_text):
-        text(length=1, lower=True, upper=True, digits=True,
-             spaces=True, other_chars=["."])
+        func = text(length=1, lower=True, upper=True, digits=True,
+                    spaces=True, other_chars=["."])
+        self.assertIsNotNone(func())
         random_text.assert_called_with(
             length=1, lower=True, upper=True, digits=True, 
             spaces=True, other_chars=["."])
@@ -125,6 +126,12 @@ class TestHelperFunctions(unittest.TestCase):
     @freeze_time('2012-01-14 03:21:34')
     def test_date_now(self):
         func = date()
+        d = func()
+        self.assertEqual(datetime(2012, 1, 14, 3, 21, 34), d)
+
+    @freeze_time('2012-01-14 03:21:34')
+    def test_now(self):
+        func = now()
         d = func()
         self.assertEqual(datetime(2012, 1, 14, 3, 21, 34), d)
 

@@ -551,6 +551,23 @@ document("blogpost", {
 
 ---
 
+### `now()`
+
+Inserts the current datetime. This is essentially the same as using the `date()` helper with no arguments.
+
+#### Example
+```python
+from monufacture.helpers import date
+
+
+document("blogpost", {
+    "published":        now()
+})
+
+```
+
+---
+
 ### `ago([[[[[[[years], months], days], hours], minutes], seconds], microseconds])`
 
 Inserts a datetime set to a date and time a given period before the current date time. Remember, this helper is evaluated at build time, not declaration time. 

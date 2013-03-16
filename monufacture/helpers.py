@@ -52,7 +52,7 @@ def id_of(factory, document=None):
 
 def text(*args, **kwargs):
     """Aliases to random_text."""
-    random_text(*args, **kwargs)
+    return random_text(*args, **kwargs)
 
 
 def random_text(length=10, spaces=False, digits=False, upper=True, 
@@ -119,6 +119,9 @@ def date(year=None, month=None, day=None, hour=None, minute=None, second=None, m
         return datetime.now()
     return build_now
 
+def now():
+    """Forwards to date(), allowing the current datetime to be inserted."""
+    return date()
 
 def ago(**kwargs):
     """Returns a function to generate a datetime a time delta in the past from the 
