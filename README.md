@@ -492,7 +492,7 @@ with factory("game", db.games):
 
 ### `random_text([[[[[[length], spaces], digits], upper], lower], other_chars])`
 
-_*Alias*: `text`_
+*Alias*: `text`
 
 Inserts a random piece of text adhereing the provided criteria.
 
@@ -515,6 +515,33 @@ from monufacture.helpers import random_text
 document("blogpost", {
     "subject":  random_text(spaces=True, length=200),
     "content":  random_text(spaces=True, length=1000, other_chars=["."] 
+})
+
+```
+
+---
+
+### `random_number(max)`
+### `random_number(min, max)`
+
+*Alias*: `number`
+
+Inserts an integer in the given range into the document.
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+| `min`      | *Optional* Minimum value of inserted integer *Default: 10* |
+| `max`      | Maximum value of inserted integer |
+
+#### Example
+```python
+from monufacture.helpers import number
+
+
+document("user", {
+    "age":  number(18, 35)
 })
 
 ```

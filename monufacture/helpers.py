@@ -176,3 +176,15 @@ def one_of(*values):
     def build(*args):
         return random.choice(values)
     return build
+
+
+def random_number(a, b=None):
+    """Inserts a random number in the given range into the document."""
+    def build(*args):
+        return random.randrange(a, b)
+    return build
+
+
+def number(*args, **kwargs):
+    """Alias to random_number."""
+    return random_number(*args, **kwargs)

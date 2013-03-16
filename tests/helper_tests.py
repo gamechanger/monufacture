@@ -1,7 +1,10 @@
 from freezegun import freeze_time
 import unittest
 import monufacture.dynamic
-from monufacture.helpers import sequence, dependent, id_of, text, random_text, dbref_to, date, now, ago, from_now, list_of, object_id, union, one_of
+from monufacture.helpers import (
+    sequence, dependent, id_of, text, random_text, dbref_to, date, 
+    now, ago, from_now, list_of, object_id, union, one_of, 
+    random_number, number)
 from mock import patch, Mock
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -191,3 +194,31 @@ class TestHelperFunctions(unittest.TestCase):
         func = one_of(1, 2, 3, 4, 5)
         vals = [func() for x in range(10000)]
         self.assertEqual(set(vals), set([1, 2, 3, 4, 5]))
+
+    def test_random_number(self):
+        func = random_number(50)
+        vals = [func() for x in range(10000)]
+        for val in vals:
+            self.assertLessEqual(val, 50)
+            self.assertGreaterEqual(val, 0)
+
+    def test_random_number_with_min(self):
+        func = random_number(5, 10)
+        vals = [func() for x in range(10000)]
+        for val in vals:
+            self.assertLessEqual(val, 10)
+            self.assertGreaterEqual(val, 5)
+
+    def test_number(self):
+        func = number(50)
+        vals = [func() for x in range(10000)]
+        for val in vals:
+            self.assertLessEqual(val, 50)
+            self.assertGreaterEqual(val, 0)
+
+    def test_number_with_min(self):
+        func = number(5, 10)
+        vals = [func() for x in range(10000)]
+        for val in vals:
+            self.assertLessEqual(val, 10)
+            self.assertGreaterEqual(val, 5)
