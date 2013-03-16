@@ -3,7 +3,7 @@ from pymongo.connection import Connection
 from unittest import TestCase, TestLoader, TestResult
 from monufacture import factory, create, create_list, reset, default
 from monufacture.unittest import enable_factories
-from monufacture.helpers import dependent, sequence, subdoc, id_of
+from monufacture.helpers import dependent, sequence, id_of
 
 host = os.environ.get("DB_IP", "localhost")
 port = int(os.environ.get("DB_PORT", 27017))

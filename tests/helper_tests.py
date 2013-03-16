@@ -1,7 +1,7 @@
 from freezegun import freeze_time
 import unittest
 import monufacture.dynamic
-from monufacture.helpers import sequence, dependent, subdoc, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id, union, one_of
+from monufacture.helpers import sequence, dependent, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id, union, one_of
 from mock import patch
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -33,13 +33,6 @@ class TestHelperFunctions(unittest.TestCase):
         doc_b = {'first': 'Bob', 'last': 'Jones'}
         self.assertEqual("John Smith", func(doc_a))
         self.assertEqual("Bob Jones", func(doc_b))
-
-    @patch('monufacture.build')
-    def test_subdoc(self, build):
-        build.return_value = {"key": "value"}
-        func = subdoc("prefs")
-        self.assertEqual({"key": "value"}, func())
-        build.assert_called_with("prefs")
 
     @patch('monufacture.create')
     def test_id_of(self, create):
