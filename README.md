@@ -345,7 +345,7 @@ At their most basic level, helpers allow you to generate simple primitive values
 
 ### `sequence(fn)`
 
-Defines a sequential value for a factory attribute. On each successive invocation of this helper (i.e. when a new instance of a document is created by the enclosing factory) the given function is passed a sequentially incrementing number which should be used to return a dynamic value to be used on the model instance.
+Defines a sequential value for a document attribute. On each successive invocation of this helper (i.e. when a new instance of a document is created by the enclosing factory) the given function is passed a sequentially incrementing number which should be used to return a dynamic value to be used on the model instance.
 
 #### Arguments
 
@@ -361,27 +361,254 @@ document("user", {
 })
 ```
 
-#### dependent(fn)
+### `dependent(fn)`
 
-#### id_of(factory, [document])
+Allows a dependent value to be dynamically generated from the value(s) of other attributes in the document. 
 
-#### random_text([[[[[[length], spaces], digits], upper], lower], other_chars])
+#### Arguments
 
-#### dbref_to(factory, [type])
+| Argument | Description |
+| -------- | ----------- |
+| `fn(doc)` | A function/lambda which returns a value based on other value(s) found on the provided document node. The provided `doc` node is the node is the document on which the field being set lives. |
 
-#### date([[[[[[[year], month], day], hour], minute], second], microsecond])
+#### Example
+```python
+document("user", {
+    "first":    "John",
+    "last":     "Smith",
+    "email":    dependent(lambda doc: "{}{}@test.com".format(doc['first'], doc['last']))
+})
+```
+Tip: The document object passed to your generator function has a `head` attribute which refers back to the root of the document. This is particularly useful if you need to insert a dependent value, which refers to a non-sibling field, into a nested portion of your document.
 
-#### ago([[[[[[[years], months], days], hours], minutes], seconds], microseconds])
 
-#### from_now([[[[[[[years], months], days], hours], minutes], seconds], microseconds])
+### `id_of(factory, [document])`
 
-#### list_of(fn, length)
+Creates a document in the database using the given factory (and optional document name) and then inserts the _id of the created document as the value of the referring field. This is a particularly effective way to effortlessly create a hierarchy of dependent documents for testing purposes. Simply declaring a document's dependency in this way will result in that dependency being created at build time. Yay!
 
-#### object_id()
+#### Arguments
 
-#### union(*fns)
+| Argument | Description |
+| -------- | ----------- |
+| `factory`  | The name of the factory to use to create the depended-on document. | 
+| `document` | *Optional* The named document within the factory to create. If not provided the default document is created. |
 
-#### one_of
+#### Example
+```python
+with factory("team", db.teams):
+    default({
+        "name":             random_text(),
+        "players":          list_of(random_text(), 11)
+    })
+
+
+# When a "game" is created, we'll also create two teams and reference them by _id
+with factory("game", db.games):
+    default({
+        "home_team_id":     id_of("team")
+        "away_team_id":     id_of("team")
+    })
+```
+
+
+### `dbref_to(factory, [document])`
+
+Very similar to the `id_of` helper, only the inserted reference to the created document is a MongoDB DBRef structure rather than just an _id. 
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+| `factory`  | The name of the factory to use to create the depended-on document. | 
+| `document` | *Optional* The named document within the factory to create. If not provided the default document is created. |
+
+#### Example
+```python
+with factory("team", db.teams):
+    default({
+        "name":             random_text(),
+        "players":          list_of(random_text(), 11)
+    })
+
+
+# When a "game" is created, we'll also create two teams and reference them by _id
+with factory("game", db.games):
+    default({
+        "home_team":     dbref_to("team")
+        "away_team":     dbref_to("team")
+    })
+```
+
+
+### `random_text([[[[[[length], spaces], digits], upper], lower], other_chars])`
+
+Inserts a random piece of text adhereing the provided criteria.
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+| `length`      | *Optional* The length of the string to return. *Default: 10* |
+| `spaces`      | *Optional* Include spaces? *Default: False* |
+| `digits`      | *Optional* Include numeric digits? *Default: False* |
+| `upper`       | *Optional* Include uppercase characters? *Default: True* |
+| `lower`       | *Optional* Include lowercase characters? *Default: True* |
+| `other_chars` | *Optional* A list of other characters to include (e.g. `[".", "?"]`) |
+
+#### Example
+```python
+document("blogpost", {
+    "subject":  random_text(spaces=True, length=200),
+    "content":  random_text(spaces=True, length=1000, other_chars=["."] 
+})
+
+```
+
+
+### `date([[[[[[[year], month], day], hour], minute], second], microsecond])`
+
+Inserts a datetime object set to the given time/date. If no arguments are provided, the current datetime is inserted.
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+| year          | *Optional* The year           | 
+| month         | *Optional* The month          | 
+| day           | *Optional* The day            | 
+| hour          | *Optional* The hour           | 
+| minute        | *Optional* The minute         |     
+| second        | *Optional* The second         |     
+| microsecond   | *Optional* The microsecond    |                 
+
+#### Example
+```python
+document("blogpost", {
+    "published":        date(2010, 2, 3, 4, 5, 6),  # A specific date
+    "last_viewed":      date()                      # Right now
+})
+
+```
+
+
+
+### `ago([[[[[[[years], months], days], hours], minutes], seconds], microseconds])`
+
+Inserts a datetime set to a date and time a given period before the current date time. Remember, this helper is evaluated at build time, not declaration time. 
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+| years        | *Optional* The years to include in the delta        | 
+| months       | *Optional* The months to include in the delta       | 
+| days         | *Optional* The days to include in the delta         | 
+| hours        | *Optional* The hours to include in the delta        | 
+| minutes      | *Optional* The minutes to include in the delta      |     
+| seconds      | *Optional* The seconds to include in the delta      |     
+| microseconds | *Optional* The microseconds to include in the delta | 
+
+#### Example
+```python
+document("blogpost", {
+    "published":        ago(hours=1, minutes=30)
+})
+```
+
+
+
+### `from_now([[[[[[[years], months], days], hours], minutes], seconds], microseconds])`
+
+Inserts a datetime set to a date and time a given period after the current date time. Remember, this helper is evaluated at build time, not declaration time. 
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+| years        | *Optional* The years to include in the delta        | 
+| months       | *Optional* The months to include in the delta       | 
+| days         | *Optional* The days to include in the delta         | 
+| hours        | *Optional* The hours to include in the delta        | 
+| minutes      | *Optional* The minutes to include in the delta      |     
+| seconds      | *Optional* The seconds to include in the delta      |     
+| microseconds | *Optional* The microseconds to include in the delta | 
+
+#### Example
+```python
+document("credit_card", {
+    "expires":        from_now(years=1, months=2)
+})
+```
+
+
+
+### `list_of(fn, length)`
+
+Description
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+|
+
+#### Example
+```python
+
+```
+
+
+
+### `object_id()`
+
+Description
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+|
+
+#### Example
+```python
+
+```
+
+
+
+### `union(*fns)`
+
+Description
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+|
+
+#### Example
+```python
+
+```
+
+
+
+### `one_of`
+
+Description
+
+#### Arguments
+
+| Argument | Description |
+| -------- | ----------- |
+|
+
+#### Example
+```python
+
+```
+
+
 
 ### Writing Custom Helpers
 
