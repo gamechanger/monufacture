@@ -336,21 +336,24 @@ with factory("vehicle", db.vehicles):
 Notes:
  - Fragments must be declared inside the scope of a `with factory():` block. Global fragments are not supported.
 
-### Helpers
+## Helpers
 
 Helpers are useful placeholder functions which can be used to insert generated data into documents at _build time_.
 
 At their most basic level, helpers allow you to generate simple primitive values for fields (e.g. `random_text`). However, some of the more sophisticated helpers allow to you declare large document structures and satisfy dependencies between collections with the minimum of effort.
 
 
-#### sequence(fn)
+### `sequence(fn)`
 
 Defines a sequential value for a factory attribute. On each successive invocation of this helper (i.e. when a new instance of a document is created by the enclosing factory) the given function is passed a sequentially incrementing number which should be used to return a dynamic value to be used on the model instance.
 
-##### Arguments
-| `fn(n)` | A function/lambda which returns a value based on the given sequence value. |
+#### Arguments
 
-##### Example
+| Argument | Description |
+| -------- | ----------- |
+| `fn(n)`  | A function/lambda which returns a value based on the given sequence value. |
+
+#### Example
 ```python
 # Generate a unique email address for each created user.
 document("user", {
