@@ -342,6 +342,7 @@ Helpers are useful placeholder functions which can be used to insert generated d
 
 At their most basic level, helpers allow you to generate simple primitive values for fields (e.g. `random_text`). However, some of the more sophisticated helpers allow to you declare large document structures and satisfy dependencies between collections with the minimum of effort.
 
+---
 
 ### `sequence(fn)`
 
@@ -360,6 +361,8 @@ document("user", {
     "email": sequence(lambda n: "user{}@test.com".format(n))
 })
 ```
+
+---
 
 ### `dependent(fn)`
 
@@ -381,6 +384,7 @@ document("user", {
 ```
 Tip: The document object passed to your generator function has a `head` attribute which refers back to the root of the document. This is particularly useful if you need to insert a dependent value, which refers to a non-sibling field, into a nested portion of your document.
 
+---
 
 ### `id_of(factory, [document])`
 
@@ -410,6 +414,7 @@ with factory("game", db.games):
     })
 ```
 
+---
 
 ### `dbref_to(factory, [document])`
 
@@ -439,6 +444,7 @@ with factory("game", db.games):
     })
 ```
 
+---
 
 ### `random_text([[[[[[length], spaces], digits], upper], lower], other_chars])`
 
@@ -464,6 +470,7 @@ document("blogpost", {
 
 ```
 
+---
 
 ### `date([[[[[[[year], month], day], hour], minute], second], microsecond])`
 
@@ -490,7 +497,7 @@ document("blogpost", {
 
 ```
 
-
+---
 
 ### `ago([[[[[[[years], months], days], hours], minutes], seconds], microseconds])`
 
@@ -515,7 +522,7 @@ document("blogpost", {
 })
 ```
 
-
+---
 
 ### `from_now([[[[[[[years], months], days], hours], minutes], seconds], microseconds])`
 
@@ -540,77 +547,111 @@ document("credit_card", {
 })
 ```
 
-
+---
 
 ### `list_of(fn, length)`
 
-Description
+Used to insert a list of the given length containing the results of invoking a given other helper multiple times. Can be used together with the `embed` helper to insert multiple copies of a fragment as an embedded collection. 
 
 #### Arguments
 
 | Argument | Description |
 | -------- | ----------- |
-|
+| fn       | A call to another helper function which will be used to yield the content of each list entry. |
+| length   | The length of the required list. The given wrapped helper will be invoked this many times. |
 
 #### Example
 ```python
+fragment("player", {
+    "name":         random_text(),
+    "number":       sequence()
+})
 
+document("team", {
+    "players":      list_of(embed("player"), 11)
+    "coaches":      list_of(random_text(), 3)
+})
 ```
 
-
+---
 
 ### `object_id()`
 
-Description
-
-#### Arguments
-
-| Argument | Description |
-| -------- | ----------- |
-|
+Generates and inserts a new BSON ObjectId at build time. 
 
 #### Example
 ```python
+document("blogpost", {
+    "_id":  object_id()
+})
 
 ```
 
-
+---
 
 ### `union(*fns)`
 
-Description
+Allows the list output of other helper function calls (e.g. `list_of`) to be unioned into a single list at build time. 
 
 #### Arguments
 
 | Argument | Description |
 | -------- | ----------- |
-|
+| `*fns`   | A list of calls to other helper functions, all of which must output lists. |
 
 #### Example
 ```python
+fragment("player", {
+    "name":         random_text(),
+    "number":       sequence()
+})
 
+fragment("injured_player", {
+    "is_injured":   True
+}, parent="player")
+
+document("team", {
+    "players":      union(list_of(embed("player"), 8), list_of(embed("injured"), 3))
+})
 ```
 
+---
 
+### `one_of(*values)`
 
-### `one_of`
-
-Description
+Allows a list of possible value to be provided for a field. At build time one of the supplied values will be picked at random and inserted. 
 
 #### Arguments
 
 | Argument | Description |
 | -------- | ----------- |
-|
+| *values  | The list of possible values the intended field can take. |
 
 #### Example
 ```python
+document("user", {
+    "status":       one_of('NEW', 'ACT', 'DEL')
+})
 
 ```
 
 
+## Writing Custom Helpers
 
-### Writing Custom Helpers
+As well as the out-of-the-box helpers documented in the previous section, you are of course free to implement your own custom helpers to meet the needs of you specific business domain. 
+
+Implementing a custom helper couldn't be easier. A helper is just a function that accepts whatever specific arguments it needs and returns a function to be called at build time which should return the actual value to be inserted in the document. The returned function should accept the document as its only argument.
+
+### Example
+```python
+# A custom helper which inserts a token
+def token():
+    def build(obj):
+        return str(uuid.uuid4().hex)
+
+    return build
+```
+
 
 ## Factory Usage
 
