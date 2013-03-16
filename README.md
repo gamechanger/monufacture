@@ -32,39 +32,37 @@ Going back to our blogging application, let's image our database is pretty simpl
 If we wanted to use Monufacture to generate test data for this application, we'd start off by declaring factories something like this:
 
 ```python
-trait("timestamped", {          # Traits can be used to declare commonly 
-    "created":  ago(days=1),    # used document content which we want to mix
-    "modified": date()          # into other documents.
+trait("timestamped", {                                              # Traits can be used to declare commonly 
+    "created":  ago(days=1),                                        # used document content which we want to mix
+    "modified": date()                                              # into other documents.
 })
 
-with factory("user", db.users): # Declare a factory, providing a name and a Mongo collection object
+with factory("user", db.users):                                     # Declare a factory, providing a name and a Mongo collection object
 
-    default({                   # Declare the default document for a factory
-        "name":     {
-            "first":    "John",
-            "last":     "Smith"
-        },
-        "email":    dependent(lambda user: "{}.{}@test.com".format(     # The "dependent" helper lets us
-                        user['name']['first'],                          # set field values from other
-                        user['name']['last'])),                         # field values.
+    default({                                                       # Declare the default document for a factory
+        "first_name":   "John",
+        "last_name":    "Smith"
+        "email":    dependent(lambda u: "{}.{}@test.com".format(    # The "dependent" helper lets us
+                                            u['first_name'],        # set field values from other
+                                            u['last_name'])),       # field values.
         "password": "abc123",
     }, traits=["timestamped"])
 
-    document("admin", {         # In addition to the default factory we can declare
-        "is_admin": True        # additional named factories for special cases.
-    }, parent="default")        # We can also inherit from the default.
+    document("admin", {                                             # In addition to the default factory we can declare
+        "is_admin": True                                            # additional named factories for special cases.
+    }, parent="default")                                            # We can also inherit from the default.
 
 
 with factory("blogpost", db.blogpost):
 
     default({
-        "author":       id_of("user"),                          # Using id_of we can insert the id of another document
-        "subject":      random_text(length=100, spaces=True),   # We can generate random text to populate fields
+        "author":       id_of("user"),                              # Using id_of we can insert the id of another document
+        "subject":      random_text(length=100, spaces=True),       # We can generate random text to populate fields
         "content":      random_text(length=1000, spaces=True),
-        "published":    ago(minutes=30),                        # We can generate a relative datetime
+        "published":    ago(minutes=30),                            # We can generate a relative datetime
     }, traits=["timestamped"])
 
-    fragment("comment", {       # We can declare reusable document fragments to be inserted into documents
+    fragment("comment", {                                           # We can declare reusable document fragments to be inserted into documents
         "commenter":    {
             "name":         random_text(spaces=True),
             "email":        sequence(lambda n: "commenter{}@test.com".format(n)),
@@ -73,7 +71,7 @@ with factory("blogpost", db.blogpost):
     })
 
     document("with_comments", {
-        "comments":     list_of(embed("comment"), 10)   # Insert a list of 10 comment fragments
+        "comments":     list_of(embed("comment"), 10)               # Insert a list of 10 comment fragments
     }, parent="default")
 ```
 
