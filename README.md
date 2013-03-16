@@ -17,7 +17,7 @@ Or, via pip:
 pip install monufacture
 ```
 
-# Geting Started
+# Getting Started
 
 To illustrate how to use Monufacture, let's imagine some dull application which uses MongoDB to power a blogging site. We want to test our site's pages to ensure that when we attempt to get a given page it loads the right data, when we attempt to save a new blog post the database is updated, etc. You get the idea.
 
