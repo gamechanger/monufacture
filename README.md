@@ -376,15 +376,17 @@ All helpers live in the `monufacture.helpers` module.
 
 ---
 
-### `sequence(fn)`
+### `sequence([fn])`
 
 Defines a sequential value for a document attribute. On each successive invocation of this helper (i.e. when a new instance of a document is created by the enclosing factory) the given function is passed a sequentially incrementing number which should be used to return a dynamic value to be used on the model instance.
+
+When used without passing a function, this helper just inserts the raw sequence number into the document.
 
 #### Arguments
 
 | Argument | Description |
 | -------- | ----------- |
-| `fn(n)`  | A function/lambda which returns a value based on the given sequence value. |
+| `fn(n)`  | A function/lambda which returns a value based on the given sequence value. *Optional* |
 
 #### Example
 ```python
@@ -433,7 +435,7 @@ Creates a document in the database using the given factory (and optional documen
 | Argument | Description |
 | -------- | ----------- |
 | `factory`  | The name of the factory to use to create the depended-on document. | 
-| `document` | *Optional* The named document within the factory to create. If not provided the default document is created. |
+| `document` | The named document within the factory to create. If not provided the default document is created. *Optional* |
 
 #### Example
 ```python
@@ -466,7 +468,7 @@ Very similar to the `id_of` helper, only the inserted reference to the created d
 | Argument | Description |
 | -------- | ----------- |
 | `factory`  | The name of the factory to use to create the depended-on document. | 
-| `document` | *Optional* The named document within the factory to create. If not provided the default document is created. |
+| `document` | The named document within the factory to create. If not provided the default document is created. *Optional* |
 
 #### Example
 ```python
@@ -500,12 +502,12 @@ Inserts a random piece of text adhereing the provided criteria.
 
 | Argument | Description |
 | -------- | ----------- |
-| `length`      | *Optional* The length of the string to return. *Default: 10* |
-| `spaces`      | *Optional* Include spaces? *Default: False* |
-| `digits`      | *Optional* Include numeric digits? *Default: False* |
-| `upper`       | *Optional* Include uppercase characters? *Default: True* |
-| `lower`       | *Optional* Include lowercase characters? *Default: True* |
-| `other_chars` | *Optional* A list of other characters to include (e.g. `[".", "?"]`) |
+| `length`      | The length of the string to return. *Default: 10*. *Optional* |
+| `spaces`      | Include spaces? *Default: False*. *Optional* |
+| `digits`      | Include numeric digits? *Default: False*. *Optional* |
+| `upper`       | Include uppercase characters? *Default: True*. *Optional* |
+| `lower`       | Include lowercase characters? *Default: True*. *Optional* |
+| `other_chars` | A list of other characters to include (e.g. `[".", "?"]`). *Optional* |
 
 #### Example
 ```python
@@ -532,7 +534,7 @@ Inserts an integer in the given range into the document.
 
 | Argument | Description |
 | -------- | ----------- |
-| `min`      | *Optional* Minimum value of inserted integer *Default: 10* |
+| `min`      | Minimum value of inserted integer. *Default: 10*. *Optional*  |
 | `max`      | Maximum value of inserted integer |
 
 #### Example
@@ -556,13 +558,13 @@ Inserts a datetime object set to the given time/date. If no arguments are provid
 
 | Argument | Description |
 | -------- | ----------- |
-| year          | *Optional* The year           | 
-| month         | *Optional* The month          | 
-| day           | *Optional* The day            | 
-| hour          | *Optional* The hour           | 
-| minute        | *Optional* The minute         |     
-| second        | *Optional* The second         |     
-| microsecond   | *Optional* The microsecond    |                 
+| year          | The year. *Optional*        | 
+| month         | The month. *Optional*       | 
+| day           | The day. *Optional*         | 
+| hour          | The hour. *Optional*        | 
+| minute        | The minute. *Optional*      |     
+| second        | The second. *Optional*      |     
+| microsecond   | The microsecond. *Optional* |                 
 
 #### Example
 ```python
@@ -603,13 +605,13 @@ Inserts a datetime set to a date and time a given period before the current date
 
 | Argument | Description |
 | -------- | ----------- |
-| years        | *Optional* The years to include in the delta        | 
-| months       | *Optional* The months to include in the delta       | 
-| days         | *Optional* The days to include in the delta         | 
-| hours        | *Optional* The hours to include in the delta        | 
-| minutes      | *Optional* The minutes to include in the delta      |     
-| seconds      | *Optional* The seconds to include in the delta      |     
-| microseconds | *Optional* The microseconds to include in the delta | 
+| years        | The years to include in the delta. *Optional*        | 
+| months       | The months to include in the delta. *Optional*       | 
+| days         | The days to include in the delta. *Optional*         | 
+| hours        | The hours to include in the delta. *Optional*        | 
+| minutes      | The minutes to include in the delta. *Optional*      |     
+| seconds      | The seconds to include in the delta. *Optional*      |     
+| microseconds | The microseconds to include in the delta. *Optional* | 
 
 #### Example
 ```python
@@ -631,13 +633,13 @@ Inserts a datetime set to a date and time a given period after the current date 
 
 | Argument | Description |
 | -------- | ----------- |
-| years        | *Optional* The years to include in the delta        | 
-| months       | *Optional* The months to include in the delta       | 
-| days         | *Optional* The days to include in the delta         | 
-| hours        | *Optional* The hours to include in the delta        | 
-| minutes      | *Optional* The minutes to include in the delta      |     
-| seconds      | *Optional* The seconds to include in the delta      |     
-| microseconds | *Optional* The microseconds to include in the delta | 
+| years        | The years to include in the delta. *Optional*        | 
+| months       | The months to include in the delta. *Optional*       | 
+| days         | The days to include in the delta. *Optional*         | 
+| hours        | The hours to include in the delta. *Optional*        | 
+| minutes      | The minutes to include in the delta. *Optional*      |     
+| seconds      | The seconds to include in the delta. *Optional*      |     
+| microseconds | The microseconds to include in the delta. *Optional* | 
 
 #### Example
 ```python

@@ -30,6 +30,11 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual("Position 3", func_a())
         self.assertEqual("Item 12", func_b())
 
+    def test_sequence_no_function(self):
+        func = sequence()
+        self.assertEqual(1, func())
+        self.assertEqual(2, func())
+
     def test_dependent(self):
         func = dependent(lambda doc: "%s %s" % (doc['first'], doc['last']))
         doc_a = {'first': 'John', 'last': 'Smith'}

@@ -18,13 +18,16 @@ class Sequence(object):
         return self.seq_num
 
 
-def sequence(fn):
+def sequence(fn=None):
     """Defines a sequential value for a factory attribute. On each successive
     invocation of this helper (i.e. when a new instance of a document is
     created by the enclosing factory) the given function is passed a
     sequentially incrementing number which should be used to return a dynamic
     value to be used on the model instance."""
     sequence = Sequence()
+
+    if not fn:
+        fn = lambda n: n
 
     def build(*args):
         return fn(sequence.next())
