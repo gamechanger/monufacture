@@ -1,6 +1,6 @@
 import os
 from unittest import TestCase
-from monufacture import factory, trait, default, document, fragment, embed, build, create, build_list, create_list, cleanup, reset, FactoryContextException
+from monufacture import factory, trait, default, document, fragment, embed, build, create, build_list, create_list, cleanup, reset, FactoryContextException, get_factory
 from monufacture.helpers import dependent, sequence, id_of
 from mock import Mock
 from bson.objectid import ObjectId
@@ -89,6 +89,12 @@ class TestGeneration(TestCase):
 
     def tearDown(self):
         reset()
+
+
+    def test_get_factory(self):
+        factory = get_factory("company")
+        self.assertEquals(self.company_collection, factory.collection)
+
 
     def test_build(self):
         expected1 = {

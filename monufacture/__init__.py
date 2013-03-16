@@ -21,33 +21,38 @@ def factory(name, collection):
     del local.working_factory
 
 
-def _get_factory():
+def get_factory(name):
+    """Get a factory by name"""
+    return factories[name]
+
+
+def _get_active_factory():
     if not hasattr(local, 'working_factory'):
         raise FactoryContextException("Method must be called inside a 'with factory()' context.")
     return local.working_factory
 
 
 def default(attrs, traits=[]):
-    _get_factory().default(attrs, traits)
+    _get_active_factory().default(attrs, traits)
 
 
 def document(name, attrs=None, parent=None, traits=[]):
-    _get_factory().document(name, attrs, parent, traits)
+    _get_active_factory().document(name, attrs, parent, traits)
 
 
 def trait(name, attrs, parent=None):
     if hasattr(local, 'working_factory'):
-        _get_factory().trait(name, attrs, parent)
+        _get_active_factory().trait(name, attrs, parent)
     else:
         traits[name] = Trait(attrs, parent)
 
 
 def fragment(name, attrs=None, parent=None, traits=[]):
-    _get_factory().fragment(name, attrs, parent, traits)
+    _get_active_factory().fragment(name, attrs, parent, traits)
 
 
 def embed(name):
-    return _get_factory().embed(name)
+    return _get_active_factory().embed(name)
 
 
 # Methods to create document instances using factories

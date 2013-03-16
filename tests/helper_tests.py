@@ -2,7 +2,7 @@ from freezegun import freeze_time
 import unittest
 import monufacture.dynamic
 from monufacture.helpers import sequence, dependent, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id, union, one_of
-from mock import patch
+from mock import patch, Mock
 from datetime import datetime
 from bson.objectid import ObjectId
 
@@ -89,18 +89,30 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertRegexpMatches(text, r'^[a-z]{1000}$')
 
     @patch('monufacture.create')
-    def test_dbref_to(self, create):
+    @patch('monufacture.get_factory')
+    def test_dbref_to(self, get_factory, create):
+        factory = Mock()
+        factory.collection = Mock()
+        factory.collection.name = "users"
+        get_factory.return_value = factory
         create.return_value = {"_id": 1234}
-        func = dbref_to("bob")
-        self.assertEqual({"$id": 1234, "$ref": "bob"}, func())
-        create.assert_called_with("bob")
+        func = dbref_to("user")
+        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        create.assert_called_with("user", None)
+
 
     @patch('monufacture.create')
-    def test_dbref_to_with_type_override(self, create):
+    @patch('monufacture.get_factory')
+    def test_dbref_to_with_named_document(self, get_factory, create):
+        factory = Mock()
+        factory.collection = Mock()
+        factory.collection.name = "users"
+        get_factory.return_value = factory
         create.return_value = {"_id": 1234}
-        func = dbref_to("bob", type="user")
-        self.assertEqual({"$id": 1234, "$ref": "user"}, func())
-        create.assert_called_with("bob")
+        func = dbref_to("user", "bob")
+        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        create.assert_called_with("user", "bob")
+
 
     @freeze_time('2012-01-14 03:21:34')
     def test_date_now(self):

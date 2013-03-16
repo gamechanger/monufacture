@@ -601,3 +601,7 @@ class TestFactory(unittest.TestCase):
         self.collection.reset_mock()
         factory.cleanup()
         self.assertFalse(self.collection.remove.called)
+
+    def test_get_collection(self):
+        factory = Factory(self.collection)
+        self.assertEqual(self.collection, factory.collection)
