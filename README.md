@@ -88,8 +88,6 @@ class BloggingTestCase(TestCase):
         response = app.get("/blogposts/{}".format(blogpost["_id"]))
         self.assertEquals(response.code, 200)
         self.assertEquals(response.body['subject'], blogpost['subject'])
-        
-
 
     def test_create(self):
         # Builds a new blogpost documents without saving it.
@@ -101,7 +99,6 @@ class BloggingTestCase(TestCase):
         self.assertEquals(response.code, 201)
         self.assertNotNone(db.blogpost.find_one(response.body['_id']))
 
-
     def test_index(self):
         # Creates 5 blogposts in the database
         blogposts = create_list(5, "blogpost")
@@ -110,7 +107,6 @@ class BloggingTestCase(TestCase):
         response = app.get('/blogposts')
         self.assertEquals(response.code, 200)
         self.assertEquals(len(response.body), 5)
-
 
     def test_other_stuff(self):
         # Override default factory-generated values
@@ -122,7 +118,6 @@ class BloggingTestCase(TestCase):
         self.assertEquals(response.code, 200)
         self.assertEquals(response.body['_id'], blogpost['_id'])
     
-
     def tearDown(self):
         # Clean up any test documents we created in the database after each test
         cleanup()
@@ -132,15 +127,214 @@ class BloggingTestCase(TestCase):
 
 ## Factory Declaration
 
-### Factories
+Factories are declared by calling the `monufacture.factory()` method using a `with` block. 
+
+Each factory must be given a name and be provided with a PyMongo collection object which it will use to insert documents it creates.
+
+Inside the factory's `with` block, the structure and attributes of the documents it will generate are declared using the `default`, `document`, `trait` and `fragment` methods (described in more detail below):
+```python
+with factory("vehicle", db.vehicles):
+    trait("car", {
+        "wheels":       4
+    })
+
+    trait("bike", {
+        "wheels":       2
+    })
+
+    trait("new", {
+        "is_new":       True
+        "purchased":    date()
+    })
+
+    trait("used", {
+        "is_new":       False
+        "num_owners":   2
+        "purchased":    ago(years=1)
+        "history":      list_of(embed("service_record"), 3)
+    })
+
+    fragment("service_record", {
+        "date":         ago(months=3)
+        "repairs":      random_text(length=500, spaces=True)
+    })
+
+    default({
+        "model":        random_text(spaces=True)
+        "price":        1234.56
+    })
+
+    document("new_bmw_motorbike", {
+        "make":         "BMW"
+    }, parent="default", traits=["new", "bike"])
+
+    document("used_jaguar_car", {
+        "make":         "Jaguar"
+    }, parent="default", traits=["used", "car"])
+```
 
 ### Documents
 
-### Traits
+Documents are declared within factories and are ultimately what factories build. Any number of named document structures may declared within a single factory (e.g. to test different scenarios) but all declared documents must be valid for Mongo collection associated with the factory. 
 
-### Fragments
+To declare a document, use the `document` method inside an enclosing `factory` declaration:
+```python
+with factory("vehicle", db.vehicles):
+    document("ford", {
+        "make":     "Ford",
+        "model":    "Taurus"
+    })
+```
+The above example declares a static document which when generated (see "Using Factories") will always contain the same two fields with the same values.
+
+To make things a bit more interesting, Monufacture provides inline helper functions (see "Helpers") which can be used to dynamically generate field values:
+```python
+with factory("vehicle", db.vehicles):
+    document("ford", {
+        "make":     "Ford",
+        "model":    random_text()
+    })
+```
+The above example factory would generate a different value for the `"model"` field each time a document is generated.
+
+#### The "default()" document
+
+Within each factory, a single "default" document structure should be declared. This is usually the simplest, most generic version of a document which is likely to be useful in most test contexts:
+```python
+with factory("vehicle", db.vehicles):
+    default({
+        "make":     random_text(),
+        "model":    random_text()
+    })
+```
 
 ### Inheritance
+When declaring multiple flavours of a document in a factory, it's common to want to reuse a base document structure in many documents. For this, Monufacture allows document declarations to inherit from one another making this process nice and DRY.
+```python
+with factory("vehicle", db.vehicles):
+    default({
+        "cc":       random_number(min=500, max=3000)
+    })
+
+    document("car", {
+        "wheels":   4
+    }, parent="default")        # Inherits fields from the default document
+
+    document("bike", {
+        "wheels":   2
+    }, parent="default")        # Inherits fields from the default document
+
+    document("mazda", {
+        "make":     "Mazda"
+    }, parent="car")            # Inherits from the "car" and default documents
+
+    document("mazda_mx5", {
+        "model":    "MX-5"
+    }, parent="mazda")          # Inherits from the "mazda", car" and default documents
+```
+Note:
+ - If a document redeclares a field already declared in a parent document, the child document's value wins.
+ - Inheritance only works within the scope of a single factory. Cross-factory inheritance is not supported.
+
+### Traits
+Traits allow common sets field values to be declared separately and then "mixed in" to as many document declarations as needed. 
+
+Traits may be declared globally so that they may be used within all factories, or scoped inside just one factory.
+
+```python
+# Declare a global "timestamped" trait which can be used in any factory
+trait("timestamped", {
+    "created":      ago(weeks=2),
+    "modified":     ago(minutes=1)
+})
+
+with factory("vehicle", db.vehicles):
+    
+    # Declare some reusable traits 
+    trait("honda", {"make": "Honda"})
+    trait("bmw", {"make": "BMW"})
+    trait("bike", {"wheels": 2})
+    trait("car", {"wheels": 4})m
+
+    # Declare various documents by mixing up combinations of traits
+    document("bmw_bike", traits=["bmw", "bike", "timestamped"])
+    document("honda_bike", traits=["honda", "bike", "timestamped"])
+    document("bmw_car", traits=["bmw", "car", "timestamped"])
+    document("honda_car", traits=["honda", "car", "timestamped"])
+
+with factory("customer", db.customers):
+    default({
+        "name":     random_text(),
+        "address:   {
+            "line_1":   random_text(),
+            "line_2":   random_text(),
+            "zip":      random_text(digits=True, length=5)
+        }
+    }, traits=["timestamped"])  # "timestamped" trait used in multiple places
+```
+Note:
+ - In the event a trait and the document referring to that trait declare the same field, the document's definition takes precedence.
+
+### Fragments
+Fragments are a bit like traits in that they allow reusable, well, fragments to be declared separately and then included in multiple document declarations. However, whereas traits get "mixed in" to a document, fragments are designed to be embedded into a document at a certain insertion point using the `embed` function.
+
+```python
+with factory("vehicle", db.vehicles):
+    # Declare an "owner" fragment we can use in multiple places
+    fragment("owner", {
+        "name":             random_text(),
+        "purchased":        ago(weeks=random_number(max=200))
+    })
+
+    # Now declare a document where we use the "owner" fragment to
+    # embed details of a current owner and a list of previous owners.
+    default({
+        "make":             random_text(),
+        "model":            random_text(),
+        "current_owner":    embed("owner", purchased=date())
+        "previous_owners":  list_of(embed("owner"), 3)
+    })
+```
+
+Fragments may be used inside traits:
+```python
+with factory("vehicle", db.vehicles):
+    # Declare an "owner" fragment we can use in multiple places
+    fragment("owner", {
+        "name":             random_text(),
+        "purchased":        ago(weeks=random_number(max=200))
+    })
+
+    trait("preowned", {
+        "previous_owners":  list_of(embed("owner"), 3)
+    })
+
+    # Now declare a document where we use the "owner" fragment to
+    # embed details of a current owner and a list of previous owners.
+    default({
+        "make":             random_text(),
+        "model":            random_text(),
+        "current_owner":    embed("owner", purchased=date())
+    }, traits=["preowned"])
+```
+
+Fragments also support inheritance in the same manner as documents:
+```python
+with factory("vehicle", db.vehicles):
+    fragment("identity", {
+        "id":               object_id()
+    })
+
+    # Declare an "owner" fragment we can use in multiple places
+    fragment("owner", {
+        "name":             random_text(),
+        "purchased":        ago(weeks=random_number(max=200))
+    }, parent="identity")
+
+```
+
+Notes:
+ - Fragments must be declared inside the scope of a `with factory():` block. Global fragments are not supported.
 
 ### Helpers
 
