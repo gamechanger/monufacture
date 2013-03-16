@@ -50,6 +50,11 @@ def id_of(factory, document=None):
     return build
 
 
+def text(*args, **kwargs):
+    """Aliases to random_text."""
+    random_text(*args, **kwargs)
+
+
 def random_text(length=10, spaces=False, digits=False, upper=True, 
                 lower=True, other_chars=[]):
     """Inserts some random text of the given length into the document."""

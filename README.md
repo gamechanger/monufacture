@@ -492,6 +492,8 @@ with factory("game", db.games):
 
 ### `random_text([[[[[[length], spaces], digits], upper], lower], other_chars])`
 
+_*Alias*: `text`_
+
 Inserts a random piece of text adhereing the provided criteria.
 
 #### Arguments

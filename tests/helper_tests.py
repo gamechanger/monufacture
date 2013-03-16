@@ -1,7 +1,7 @@
 from freezegun import freeze_time
 import unittest
 import monufacture.dynamic
-from monufacture.helpers import sequence, dependent, id_of, random_text, dbref_to, date, ago, from_now, list_of, object_id, union, one_of
+from monufacture.helpers import sequence, dependent, id_of, text, random_text, dbref_to, date, ago, from_now, list_of, object_id, union, one_of
 from mock import patch, Mock
 from datetime import datetime
 from bson.objectid import ObjectId
@@ -47,6 +47,14 @@ class TestHelperFunctions(unittest.TestCase):
         func = id_of("bob", "dave")
         self.assertEqual(1234, func())
         create.assert_called_with("bob", "dave")
+
+    @patch('monufacture.helpers.random_text')
+    def test_text(self, random_text):
+        text(length=1, lower=True, upper=True, digits=True,
+             spaces=True, other_chars=["."])
+        random_text.assert_called_with(
+            length=1, lower=True, upper=True, digits=True, 
+            spaces=True, other_chars=["."])
 
     def test_random_text(self):
         func = random_text()
