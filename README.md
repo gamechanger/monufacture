@@ -133,6 +133,10 @@ Each factory must be given a name and be provided with a PyMongo collection obje
 
 Inside the factory's `with` block, the structure and attributes of the documents it will generate are declared using the `default`, `document`, `trait` and `fragment` methods (described in more detail below):
 ```python
+from monufacture import factory, trait, embed, fragment, document, default
+from monugacture.helpers import date, ago, list_of, random_text
+
+
 with factory("vehicle", db.vehicles):   # All documents will be written to the "vehicles" collection in MongoDB.
     trait("car", {
         "wheels":       4
@@ -179,6 +183,9 @@ Documents are declared within factories and are ultimately what factories build.
 
 To declare a document, use the `document` method inside an enclosing `factory` declaration:
 ```python
+from monufacture import document, factory
+
+
 with factory("vehicle", db.vehicles):
     document("ford", {
         "make":     "Ford",
@@ -189,6 +196,10 @@ The above example declares a static document which when generated (see "Using Fa
 
 To make things a bit more interesting, Monufacture provides inline helper functions (see "Helpers") which can be used to dynamically generate field values:
 ```python
+from monufacture import document, factory
+from monufacture.helpers import random_text
+
+
 with factory("vehicle", db.vehicles):
     document("ford", {
         "make":     "Ford",
@@ -201,6 +212,10 @@ The above example factory would generate a different value for the `"model"` fie
 
 Within each factory, a single "default" document structure should be declared. This is usually the simplest, most generic version of a document which is likely to be useful in most test contexts:
 ```python
+from monufacture import default, factory
+from monufacture.helpers import random_text
+
+
 with factory("vehicle", db.vehicles):
     default({
         "make":     random_text(),
@@ -211,9 +226,12 @@ with factory("vehicle", db.vehicles):
 ### Inheritance
 When declaring multiple flavours of a document in a factory, it's common to want to reuse a base document structure in many documents. For this, Monufacture allows document declarations to inherit from one another making this process nice and DRY.
 ```python
+from monufacture import document, factory, default
+
+
 with factory("vehicle", db.vehicles):
     default({
-        "cc":       random_number(min=500, max=3000)
+        "cc":       1500
     })
 
     document("car", {
@@ -236,12 +254,17 @@ Note:
  - If a document redeclares a field already declared in a parent document, the child document's value wins.
  - Inheritance only works within the scope of a single factory. Cross-factory inheritance is not supported.
 
+
 ### Traits
 Traits allow common sets field values to be declared separately and then "mixed in" to as many document declarations as needed. 
 
 Traits may be declared globally so that they may be used within all factories, or scoped inside just one factory.
 
 ```python
+from monufacture import trait, document, factory, default
+from monufacture.helpers import ago, random_text
+
+
 # Declare a global "timestamped" trait which can be used in any factory
 trait("timestamped", {
     "created":      ago(weeks=2),
@@ -275,10 +298,15 @@ with factory("customer", db.customers):
 Note:
  - In the event a trait and the document referring to that trait declare the same field, the document's definition takes precedence.
 
+
 ### Fragments
 Fragments are a bit like traits in that they allow reusable, well, fragments to be declared separately and then included in multiple document declarations. However, whereas traits get "mixed in" to a document, fragments are designed to be embedded into a document at a certain insertion point using the `embed` function.
 
 ```python
+from monufacture import trait, document, factory, default, fragment, embed
+from monufacture.helpers import ago, random_text, list_of
+
+
 with factory("vehicle", db.vehicles):
     # Declare an "owner" fragment we can use in multiple places
     fragment("owner", {
@@ -336,11 +364,15 @@ with factory("vehicle", db.vehicles):
 Notes:
  - Fragments must be declared inside the scope of a `with factory():` block. Global fragments are not supported.
 
+
+
 ## Helpers
 
 Helpers are useful placeholder functions which can be used to insert generated data into documents at _build time_.
 
 At their most basic level, helpers allow you to generate simple primitive values for fields (e.g. `random_text`). However, some of the more sophisticated helpers allow to you declare large document structures and satisfy dependencies between collections with the minimum of effort.
+
+All helpers live in the `monufacture.helpers` module.
 
 ---
 
@@ -356,6 +388,9 @@ Defines a sequential value for a document attribute. On each successive invocati
 
 #### Example
 ```python
+from monufacture.helpers import sequence
+
+
 # Generate a unique email address for each created user.
 document("user", {
     "email": sequence(lambda n: "user{}@test.com".format(n))
@@ -376,6 +411,9 @@ Allows a dependent value to be dynamically generated from the value(s) of other 
 
 #### Example
 ```python
+from monufacture.helpers import dependent
+
+
 document("user", {
     "first":    "John",
     "last":     "Smith",
@@ -399,6 +437,9 @@ Creates a document in the database using the given factory (and optional documen
 
 #### Example
 ```python
+from monufacture.helpers import id_of, random_text, list_of
+
+
 with factory("team", db.teams):
     default({
         "name":             random_text(),
@@ -429,6 +470,9 @@ Very similar to the `id_of` helper, only the inserted reference to the created d
 
 #### Example
 ```python
+from monufacture.helpers import dbref_to, random_text, list_of
+
+
 with factory("team", db.teams):
     default({
         "name":             random_text(),
@@ -463,6 +507,9 @@ Inserts a random piece of text adhereing the provided criteria.
 
 #### Example
 ```python
+from monufacture.helpers import random_text
+
+
 document("blogpost", {
     "subject":  random_text(spaces=True, length=200),
     "content":  random_text(spaces=True, length=1000, other_chars=["."] 
@@ -490,6 +537,9 @@ Inserts a datetime object set to the given time/date. If no arguments are provid
 
 #### Example
 ```python
+from monufacture.helpers import date
+
+
 document("blogpost", {
     "published":        date(2010, 2, 3, 4, 5, 6),  # A specific date
     "last_viewed":      date()                      # Right now
@@ -517,6 +567,9 @@ Inserts a datetime set to a date and time a given period before the current date
 
 #### Example
 ```python
+from monufacture.helpers import ago
+
+
 document("blogpost", {
     "published":        ago(hours=1, minutes=30)
 })
@@ -542,6 +595,9 @@ Inserts a datetime set to a date and time a given period after the current date 
 
 #### Example
 ```python
+from monufacture.helpers import from_now
+
+
 document("credit_card", {
     "expires":        from_now(years=1, months=2)
 })
@@ -562,6 +618,9 @@ Used to insert a list of the given length containing the results of invoking a g
 
 #### Example
 ```python
+from monufacture.helpers import list_of
+
+
 fragment("player", {
     "name":         random_text(),
     "number":       sequence()
@@ -581,6 +640,9 @@ Generates and inserts a new BSON ObjectId at build time.
 
 #### Example
 ```python
+from monufacture.helpers import object_id
+
+
 document("blogpost", {
     "_id":  object_id()
 })
@@ -601,6 +663,9 @@ Allows the list output of other helper function calls (e.g. `list_of`) to be uni
 
 #### Example
 ```python
+from monufacture.helpers import union
+
+
 fragment("player", {
     "name":         random_text(),
     "number":       sequence()
@@ -629,6 +694,9 @@ Allows a list of possible value to be provided for a field. At build time one of
 
 #### Example
 ```python
+from monufacture.helpers import one_of
+
+
 document("user", {
     "status":       one_of('NEW', 'ACT', 'DEL')
 })
@@ -653,10 +721,95 @@ def token():
 ```
 
 
-## Factory Usage
+## Using Factories
+
+Once some factories have been declared, Monufacture let's you use factories to generate documents via two main routes: "building" and "creating".
 
 ### Building Documents
 
+"Building" a document means generating an instance using the factory without saving it in the database. Building supports a variety of options:
+
+```python
+from monufacture import build, build_list
+
+
+# Build the default document from the "car" factory
+car = build("car")
+
+
+# Build the "mazda" document from the "car" factory
+mazda = build("car", "mazda")
+
+
+# Build the default document from the "car" factory overriding the value for the "wheels" attribute
+three_wheeler = build("car", wheels=3)
+
+
+# Build a list of 5 cars
+cars = build_list(5, "car")
+
+
+# Build a list of 10 mazdas
+mazdas = build_list(10, "car", "mazda")
+
+
+# Build a list of 7 cars, overriding the "wheels" attribute on each
+three_wheelers = build_list(7, "car", wheels=3)
+
+```
+Note:
+ - Overrides will be inserted into the document whether the given attribute already exists or not. 
+
+
 ### Creating Documents
 
+The API for "creating" document is essentially identical to that for "building", the only difference is that when creating a document, it is inserted into the MongoDB collection associated with the factory and is given an `_id`. 
+
+```python
+from monufacture import create, create_list
+
+
+# Create the default document from the "car" factory
+car = create("car")
+
+
+# Create the "mazda" document from the "car" factory
+mazda = create("car", "mazda")
+
+
+# Create the default document from the "car" factory overriding the value for the "wheels" attribute
+three_wheeler = create("car", wheels=3)
+
+
+# Create a list of 5 cars
+cars = create_list(5, "car")
+
+
+# Create a list of 10 mazdas
+mazdas = create_list(10, "car", "mazda")
+
+
+# Create a list of 7 cars, overriding the "wheels" attribute on each
+three_wheelers = build_list(7, "car", wheels=3)
+```
+
 ### Cleanup
+
+Typically, test documents are created in the context of a unit test and are no longer of use after that test has completed. 
+
+To ensure the created test documents are cleared up, use the `cleanup` method from you test's tearDown method:
+
+```python
+from unittest import TestCase
+from monufacture import create, cleanup
+
+
+class BlogpostTestCase(TestCase):
+    
+    def test_something(self):
+        post = create("blogpost")
+        # do some testing
+
+    def tearDown(self)
+        cleanup()
+```
