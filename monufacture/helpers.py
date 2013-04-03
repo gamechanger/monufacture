@@ -46,7 +46,7 @@ def dependent(fn):
 
 def id_of(factory, document=None, **overrides):
     """Creates an instance using the given named factory and returns the
-    ID of the persisted record."""
+    ID of the persisted record. """
     def build(*args):
         # Flatten an function overrides
         for key, value in overrides.iteritems():
@@ -131,11 +131,25 @@ def now():
     """Forwards to date(), allowing the current datetime to be inserted."""
     return date()
 
+def _convert_years_months_to_days(timedeltas):
+    """Converts any 'years' or 'months' values in a given timedeltas dict
+    to equivalent values of days and adds them to the 'days' value.
+    This is to work around a lack of support for months and years in
+    Python's timedelta library.
+    Assumes 30 days per month, 365 days per year.
+    """
+    if 'months' in timedeltas:
+        timedeltas['days'] = timedeltas.setdefault('days', 0) + 30 * timedeltas['months']
+        del timedeltas['months']
+    if 'years' in timedeltas:
+        timedeltas['days'] = timedeltas.setdefault('days', 0) + 365 * timedeltas['years']
+        del timedeltas['years']
 
 def ago(**kwargs):
     """Returns a function to generate a datetime a time delta in the past from the 
     time at which it is run."""
     def build(*args):
+        _convert_years_months_to_days(kwargs)
         return datetime.now() - timedelta(**kwargs)
 
     return build
@@ -145,6 +159,7 @@ def from_now(**kwargs):
     """Returns a function to generate a datetime a time delta in the future from the
     time at which it is run."""
     def build(*args):
+        _convert_years_months_to_days(kwargs)
         return datetime.now() + timedelta(**kwargs)
 
     return build

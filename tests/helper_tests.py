@@ -185,6 +185,12 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(datetime(2012, 1, 12, 3, 20, 44), d)
 
     @freeze_time('2012-01-14 03:21:34')
+    def test_1_year_3_months_ago(self):
+        func = ago(years=1, months=3)
+        d = func()
+        self.assertEqual(datetime(2010, 10, 16, 3, 21, 34), d)
+
+    @freeze_time('2012-01-14 03:21:34')
     def test_5_minutes_from_now(self):
         func = from_now(minutes=5)
         d = func()
@@ -195,6 +201,12 @@ class TestHelperFunctions(unittest.TestCase):
         func = from_now(days=2, seconds=50)
         d = func()
         self.assertEqual(datetime(2012, 1, 16, 3, 22, 24), d)
+
+    @freeze_time('2012-01-14 03:21:34')
+    def test_1_year_3_months_from_now(self):
+        func = from_now(years=1, months=3)
+        d = func()
+        self.assertEqual(datetime(2013, 4, 13, 3, 21, 34), d)
 
     def test_list_of(self):
         func = lambda x: x
