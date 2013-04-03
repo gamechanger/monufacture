@@ -455,9 +455,7 @@ with factory("team", db.teams):
 # When a "game" is created, we'll also create two teams and reference them by _id
 with factory("game", db.games):
     default({
-        "home_team_name":   text(),
-        "away_team_name":   text(),
-        "home_team_id":     id_of("team", name=lambda node:node['home_team_name'])
+        "home_team_id":     id_of("team")
         "away_team_id":     id_of("team")
     })
 
