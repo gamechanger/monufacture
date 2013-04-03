@@ -426,9 +426,11 @@ Tip: The document object passed to your generator function has a `head` attribut
 
 ---
 
-### `id_of(factory, [document])`
+### `id_of(factory, [document], **overrides)`
 
 Creates a document in the database using the given factory (and optional document name) and then inserts the _id of the created document as the value of the referring field. This is a particularly effective way to effortlessly create a hierarchy of dependent documents for testing purposes. Simply declaring a document's dependency in this way will result in that dependency being created at build time. Yay!
+
+You can also provide overrides to the document being created which can either be literals or functions evaluated on creation.
 
 #### Arguments
 
@@ -436,6 +438,7 @@ Creates a document in the database using the given factory (and optional documen
 | -------- | ----------- |
 | `factory`  | The name of the factory to use to create the depended-on document. | 
 | `document` | The named document within the factory to create. If not provided the default document is created. *Optional* |
+| `**overrides` | Override field values to be passed to the document being created. Values can be literals or functions. Functions are passed the current node (in a similar manner to the dependency helper) and must return a literal value.|
 
 #### Example
 ```python
@@ -452,8 +455,19 @@ with factory("team", db.teams):
 # When a "game" is created, we'll also create two teams and reference them by _id
 with factory("game", db.games):
     default({
-        "home_team_id":     id_of("team")
+        "home_team_name":   text(),
+        "away_team_name":   text(),
+        "home_team_id":     id_of("team", name=lambda node:node['home_team_name'])
         "away_team_id":     id_of("team")
+    })
+
+# We could also provide an override for each team name as appropriate
+with factory("game", db.games):
+    default({
+        "home_team_name":   text(),
+        "away_team_name":   text(),
+        "home_team_id":     id_of("team", name=lambda node: node['home_team_name'])
+        "away_team_id":     id_of("team", name=lambda node: node['away_team_name'])
     })
 ```
 

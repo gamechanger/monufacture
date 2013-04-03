@@ -44,12 +44,16 @@ def dependent(fn):
     return build
 
 
-
-def id_of(factory, document=None):
+def id_of(factory, document=None, **overrides):
     """Creates an instance using the given named factory and returns the
     ID of the persisted record."""
     def build(*args):
-        return monufacture.create(factory, document)["_id"]
+        # Flatten an function overrides
+        for key, value in overrides.iteritems():
+            if callable(value):
+                overrides[key] = value(*args)
+
+        return monufacture.create(factory, document, **overrides)["_id"]
     return build
 
 
@@ -122,9 +126,11 @@ def date(year=None, month=None, day=None, hour=None, minute=None, second=None, m
         return datetime.now()
     return build_now
 
+
 def now():
     """Forwards to date(), allowing the current datetime to be inserted."""
     return date()
+
 
 def ago(**kwargs):
     """Returns a function to generate a datetime a time delta in the past from the 

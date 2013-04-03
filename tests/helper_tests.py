@@ -56,6 +56,21 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(1234, func())
         create.assert_called_with("bob", "dave")
 
+    @patch('monufacture.create')
+    def test_id_of_with_overrides(self, create):
+        create.return_value = {"_id": 1234}
+        func = id_of("bob", "dave", sandwich="blt")
+        self.assertEqual(1234, func())
+        create.assert_called_with("bob", "dave", sandwich="blt")
+
+    @patch('monufacture.create')
+    def test_id_of_with_function_overrides(self, create):
+        create.return_value = {"_id": 1234}
+        func = id_of("bob", "dave", sandwich=lambda n: n['flavor'])
+        obj = {"flavor": "ham"}
+        self.assertEqual(1234, func(obj))
+        create.assert_called_with("bob", "dave", sandwich="ham")  
+
     @patch('monufacture.helpers.random_text')
     def test_text(self, random_text):
         func = text(length=1, lower=True, upper=True, digits=True,
