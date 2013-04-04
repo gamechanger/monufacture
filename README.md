@@ -4,7 +4,7 @@ Monufacture is a simple test data factory framework for Python which aims to mak
 
 The API borrows heavily from Thoughtbot's excellent [factory_girl](https://github.com/thoughtbot/factory_girl) gem for Ruby.
 
-[![build status](https://travis-ci.org/tleach/monufacture.png?branch=master "Build status")](https://travis-ci.org/tleach/monufacture)
+[![build status](https://travis-ci.org/gamechanger/monufacture.png?branch=master "Build status")](https://travis-ci.org/gamechanger/monufacture)
 
 # Installation
 
