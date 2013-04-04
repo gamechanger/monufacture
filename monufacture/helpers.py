@@ -44,7 +44,7 @@ def dependent(fn):
     return build
 
 
-def id_of(factory, document=None, **overrides):
+def id_of(factory_, document_=None, **overrides):
     """Creates an instance using the given named factory and returns the
     ID of the persisted record. """
     def build(*args):
@@ -53,7 +53,7 @@ def id_of(factory, document=None, **overrides):
             if callable(value):
                 overrides[key] = value(*args)
 
-        return monufacture.create(factory, document, **overrides)["_id"]
+        return monufacture.create(factory_, document_, **overrides)["_id"]
     return build
 
 

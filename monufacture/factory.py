@@ -71,29 +71,29 @@ class Factory(object):
 
         return spec
 
-    def build(self, name=None, **overrides):
+    def build(self, name_=None, **overrides):
         """Builds an instance of the document described by the attributes
         used to create this factory without actually persisting it to 
         the database. Any overrides provided are used in preference to 
         those attributes associated with the factory."""
-        if not name:
-            name = "default"
+        if not name_:
+            name_ = "default"
 
-        if name not in self.documents:
-            raise NonExistentDocumentException(name)
+        if name_ not in self.documents:
+            raise NonExistentDocumentException(name_)
         
-        spec = self._build_document(name)
+        spec = self._build_document(name_)
         
         spec.update(overrides)
         return spec.resolve()
 
-    def create(self, name=None, **overrides):
+    def create(self, name_=None, **overrides):
         """Builds an instance of the document using the same approach as 
         `build` but also persists the document to the database."""
         if not self.collection:
             raise IOError("Cannot create an instance when no collection is provided.")
 
-        doc = self.build(name, **overrides)
+        doc = self.build(name_, **overrides)
         doc_id = self.collection.insert(doc, safe=True)
         self.created_ids.append(doc_id)
         return self.collection.find_one(doc_id)

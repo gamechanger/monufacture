@@ -56,30 +56,30 @@ def embed(name):
 
 
 # Methods to create document instances using factories
-def create(factory, document=None, **overrides):
+def create(factory_, document_=None, **overrides):
     """Creates and returns instance of the named document using the factory
     with which it was declared, utilising any provided attribute
     overrides, storing the instance in the database."""
-    return factories[factory].create(document, **overrides)
+    return factories[factory_].create(document_, **overrides)
 
 
-def build(factory, document=None, **overrides):
+def build(factory_, document_=None, **overrides):
     """Builds and returns instance of the named document using the factory
     with which it was declared, utilising any provided attribute
     overrides, without storing the instance in the database."""
-    return factories[factory].build(document, **overrides)
+    return factories[factory_].build(document_, **overrides)
 
 
-def build_list(number, factory, document=None, **overrides):
-    """Builds a list of `count` instances of the named document using the 
+def build_list(count_, factory_, document_=None, **overrides):
+    """Builds a list of `count_` instances of the named document using the 
     associated factory."""
-    return [build(factory, document, **overrides) for x in range(number)]
+    return [build(factory_, document_, **overrides) for x in range(count_)]
 
 
-def create_list(count, factory, document=None, **overrides):
-    """Creates a list of `count` instances of the named document using the 
+def create_list(count_, factory_, document_=None, **overrides):
+    """Creates a list of `count_` instances of the named document using the 
     associated factory."""
-    return [create(factory, document, **overrides) for x in range(count)]
+    return [create(factory_, document_, **overrides) for x in range(count_)]
 
 
 # Cleanup methods

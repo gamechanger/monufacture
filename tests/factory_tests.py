@@ -58,6 +58,21 @@ class TestFactory(unittest.TestCase):
             "age": 45
         })
 
+    def test_build_with_keyword_overrides(self):
+        # Make sure that if the user's override field names potentially
+        # clash with internal variable names (document, name, factory
+        # etc.) they don't break things.
+        factory = Factory(self.collection)
+        factory.default({})
+        scary_overrides = {
+            "document": 1,
+            "factory": 2,
+            "name": 3,
+            "number": 4
+        }
+        self.assertDictEqual(factory.build(**scary_overrides), 
+                             scary_overrides)
+
     def test_build_with_function_and_overrides(self):
         def full_name(doc, *args):
             return "%s %s" % (doc['first_name'], doc['last_name'])
@@ -456,6 +471,21 @@ class TestFactory(unittest.TestCase):
         }, safe=True)
         self.collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)
+
+
+    def test_create_with_keyword_overrides(self):
+        scary_overrides = {
+            "document": 1,
+            "factory": 2,
+            "name": 3,
+            "number": 4
+        }
+        self.collection.find_one = Mock()
+        factory = Factory(self.collection)
+        factory.default({})
+        factory.create(**scary_overrides)
+        self.collection.insert.assert_called_with(scary_overrides, safe=True)
+
 
     def test_create_with_additional_fields(self):
         to_return = {
