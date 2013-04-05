@@ -49,11 +49,14 @@ def id_of(factory_, document_=None, **overrides):
     ID of the persisted record. """
     def build(*args):
         # Flatten an function overrides
+        instance_overrides = {}
         for key, value in overrides.iteritems():
             if callable(value):
-                overrides[key] = value(*args)
+                instance_overrides[key] = value(*args)
+            else:
+                instance_overrides[key] = value
 
-        return monufacture.create(factory_, document_, **overrides)["_id"]
+        return monufacture.create(factory_, document_, **instance_overrides)["_id"]
     return build
 
 

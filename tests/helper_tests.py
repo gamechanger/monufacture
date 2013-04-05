@@ -5,7 +5,7 @@ from monufacture.helpers import (
     sequence, dependent, id_of, text, random_text, dbref_to, date, 
     now, ago, from_now, list_of, object_id, union, one_of, 
     random_number, number)
-from mock import patch, Mock
+from mock import patch, Mock, call
 from datetime import datetime
 from bson.objectid import ObjectId
 
@@ -67,9 +67,14 @@ class TestHelperFunctions(unittest.TestCase):
     def test_id_of_with_function_overrides(self, create):
         create.return_value = {"_id": 1234}
         func = id_of("bob", "dave", sandwich=lambda n: n['flavor'])
-        obj = {"flavor": "ham"}
-        self.assertEqual(1234, func(obj))
-        create.assert_called_with("bob", "dave", sandwich="ham")  
+        obj1 = {"flavor": "ham"}
+        obj2 = {"flavor": "cheese"}
+        self.assertEqual(1234, func(obj1))
+        self.assertEqual(1234, func(obj2))
+        self.assertEqual(
+            [call("bob", "dave", sandwich="ham"), call("bob", "dave", sandwich="cheese")],
+            create.mock_calls)
+        
 
     @patch('monufacture.helpers.random_text')
     def test_text(self, random_text):
