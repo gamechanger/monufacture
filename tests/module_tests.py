@@ -1,8 +1,9 @@
 import os
 from unittest import TestCase
+import monufacture
 from monufacture import factory, trait, default, document, fragment, embed, build, create, build_list, create_list, cleanup, reset, FactoryContextException, get_factory
 from monufacture.helpers import dependent, sequence, id_of
-from mock import Mock
+from mock import Mock, patch, ANY
 from bson.objectid import ObjectId
 from pymongo.connection import Connection
 
@@ -86,9 +87,14 @@ class TestGeneration(TestCase):
                 "name": "GloboCorp"
             })
 
+            document('pharma', {
+                "name": "Pfizer"
+            })
+
 
     def tearDown(self):
         reset()
+        monufacture.debug = False
 
 
     def test_get_factory(self):
@@ -488,9 +494,31 @@ class TestGeneration(TestCase):
         for expected, actual in zip(expected_docs, created_list):
             self.assertDictContainsSubset(expected, actual)
 
+
     def test_cleanup(self):
         before_count = self.user_collection.count()
         create("user")
         cleanup()
         after_count = self.user_collection.count()
         self.assertEqual(before_count, after_count)
+
+
+    @patch('logging.debug')
+    def test_debug_logging(self, debug):
+        monufacture.debug = True
+
+        def check_log(factory, document=None, **overrides):
+            debug.assert_called_once_with(
+                "CREATED [%s]: %s, document=%s, overrides=%s", 
+                ANY, factory, document, overrides)
+            debug.reset_mock()
+
+        create('company')
+        check_log('company')
+        create('company', 'pharma')
+        check_log('company', 'pharma')
+        create('company', thing='blah')
+        check_log('company', thing='blah')
+        create_list(1, 'company', 'pharma', thing='blah')
+        check_log('company', 'pharma', thing='blah')
+

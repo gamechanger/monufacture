@@ -1,11 +1,12 @@
 from factory import Factory, Trait
 from contextlib import contextmanager
 from threading import local
+import logging
 
 # Registry for all factories
 factories = {}
 traits = {}
-
+debug = False
 local = local()
 
 # Methods to setup and declare factories
@@ -60,7 +61,11 @@ def create(factory_, document_=None, **overrides):
     """Creates and returns instance of the named document using the factory
     with which it was declared, utilising any provided attribute
     overrides, storing the instance in the database."""
-    return factories[factory_].create(document_, **overrides)
+    doc = factories[factory_].create(document_, **overrides)
+    if debug:
+        logging.debug("CREATED [%s]: %s, document=%s, overrides=%s", 
+                      doc['_id'], factory_, document_, overrides)
+    return doc
 
 
 def build(factory_, document_=None, **overrides):
