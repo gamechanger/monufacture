@@ -873,3 +873,15 @@ class BlogpostTestCase(TestCase):
     def tearDown(self)
         cleanup()
 ```
+
+### Debugging
+
+Monufacture has some basic debug logging which can be turned on from your test to aid debugging. 
+
+```python
+import monufacture
+
+monufacture.debug = True
+```
+
+Debug logging currently outputs a log entry each time a document is created.
