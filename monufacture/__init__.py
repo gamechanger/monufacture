@@ -11,7 +11,7 @@ local = local()
 
 # Methods to setup and declare factories
 @contextmanager
-def factory(name, collection):
+def factory(name, collection=None):
     """Declares a new named factory with the given attributes."""
     factory = Factory(collection, global_traits=traits)
     factories[name] = factory
