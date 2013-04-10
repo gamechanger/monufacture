@@ -91,6 +91,10 @@ class TestGeneration(TestCase):
                 "name": "Pfizer"
             })
 
+        with factory("fake"):
+            default({
+                "fake": True
+            })
 
     def tearDown(self):
         reset()
@@ -488,12 +492,19 @@ class TestGeneration(TestCase):
             "favorite_color": "green",
             "v": 4
         }]
-        
+
         created_list = create_list(3, "user", "admin", created="then", favorite_color="green")
 
         for expected, actual in zip(expected_docs, created_list):
             self.assertDictContainsSubset(expected, actual)
 
+    def test_build_collectionless_document(self):
+        doc = build('fake')
+        self.assertEqual(doc, {'fake': True})
+
+    def test_create_collectionless_document(self):
+        with self.assertRaises(IOError):
+            create('fake')
 
     def test_cleanup(self):
         before_count = self.user_collection.count()
