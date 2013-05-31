@@ -45,16 +45,16 @@ class Factory(object):
             self._apply_traits(spec, fragment.traits)
 
         spec.update(fragment.attrs)
-
         return spec
 
     def _build_trait(self, name):
         trait = self.traits.get(name) or self.global_traits.get(name)
         if trait.parent:
             spec = self._build_trait(trait.parent)
-            spec.update(trait.attrs)
         else:
-            spec = trait.attrs
+            spec = DynamicDict()
+
+        spec.update(trait.attrs)
         return spec
 
     def _build_document(self, name):
@@ -69,7 +69,6 @@ class Factory(object):
             self._apply_traits(spec, doc.traits)
 
         spec.update(doc.attrs)
-
         return spec
 
     def build(self, name_=None, **overrides):

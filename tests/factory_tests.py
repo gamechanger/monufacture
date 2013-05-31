@@ -280,6 +280,39 @@ class TestFactory(unittest.TestCase):
         self.assertDictEqual(expected, factory.build("mazda"))
 
 
+    def test_build_with_multiple_trait_inheritance(self):
+        # this is testing inheritance of traits, not traits plus doc inheritance
+        factory = Factory(self.collection)
+        factory.trait("timestamped", {
+            "created": lambda doc: datetime(2001, 1, 1, 1, 1, 1)
+        })
+
+        factory.trait("versioned", {
+            "v": 3
+        }, parent="timestamped")
+
+        factory.trait("audited", {
+            "actions": ["created"]
+        }, parent="timestamped")
+
+
+        factory.document("car", {
+            "wheels": 4
+        }, traits=["versioned"])
+
+        factory.document("mazda", {
+            "make": lambda doc: "Mazda"
+        }, traits=["audited"])
+
+        expected = {
+            "make": "Mazda",
+            "created": datetime(2001, 1, 1, 1, 1, 1),
+            "actions": ["created"]
+        }
+        factory.build("car")
+        self.assertDictEqual(expected, factory.build("mazda"))
+
+
     def test_successive_builds_with_different_overrides(self):
         factory = Factory(self.collection)
         factory.default({
