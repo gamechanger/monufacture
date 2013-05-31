@@ -27,8 +27,8 @@ class Factory(object):
         self.documents = {}
         self.traits = {}
         self.fragments = {}
-        self.global_traits = global_traits  
-        
+        self.global_traits = global_traits
+
 
     def _apply_traits(self, doc, traits):
         for trait in traits:
@@ -38,12 +38,13 @@ class Factory(object):
         fragment = self.fragments[name]
         if fragment.parent:
             spec = self._build_fragment(fragment.parent)
-            spec.update(fragment.attrs)
         else:
-            spec = fragment.attrs
+            spec = DynamicDict()
 
         if fragment.traits:
             self._apply_traits(spec, fragment.traits)
+
+        spec.update(fragment.attrs)
 
         return spec
 
@@ -63,7 +64,7 @@ class Factory(object):
             spec = self._build_document(doc.parent)
         else:
             spec = DynamicDict()
-        
+
         if doc.traits:
             self._apply_traits(spec, doc.traits)
 
@@ -73,22 +74,22 @@ class Factory(object):
 
     def build(self, name_=None, **overrides):
         """Builds an instance of the document described by the attributes
-        used to create this factory without actually persisting it to 
-        the database. Any overrides provided are used in preference to 
+        used to create this factory without actually persisting it to
+        the database. Any overrides provided are used in preference to
         those attributes associated with the factory."""
         if not name_:
             name_ = "default"
 
         if name_ not in self.documents:
             raise NonExistentDocumentException(name_)
-        
+
         spec = self._build_document(name_)
-        
+
         spec.update(overrides)
         return spec.resolve()
 
     def create(self, name_=None, **overrides):
-        """Builds an instance of the document using the same approach as 
+        """Builds an instance of the document using the same approach as
         `build` but also persists the document to the database."""
         if not self.collection:
             raise IOError("Cannot create an instance when no collection is provided.")
@@ -139,6 +140,6 @@ class NonExistentDocumentException(Exception):
         return "Document declaration not found: \"%s\"" % self.name
 
 class FactoryDeclarationException(Exception):
-    """Raised when an error has been detected in the declaration of a 
+    """Raised when an error has been detected in the declaration of a
     factory."""
     pass

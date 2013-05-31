@@ -70,7 +70,7 @@ class TestFactory(unittest.TestCase):
             "name": 3,
             "number": 4
         }
-        self.assertDictEqual(factory.build(**scary_overrides), 
+        self.assertDictEqual(factory.build(**scary_overrides),
                              scary_overrides)
 
     def test_build_with_function_and_overrides(self):
@@ -134,7 +134,7 @@ class TestFactory(unittest.TestCase):
             "first_name": "Mike",
             "other": "thing"
         })
-        
+
 
     def test_build_with_traits(self):
         factory = Factory(self.collection)
@@ -145,7 +145,7 @@ class TestFactory(unittest.TestCase):
             "v": 3
         })
         factory.document("car", {
-            "wheels": 4, 
+            "wheels": 4,
             "make": lambda doc: "Mazda"
         }, traits=["timestamped", "versioned"])
 
@@ -186,7 +186,7 @@ class TestFactory(unittest.TestCase):
             "v": 3
         })
         factory.default({
-            "wheels": 4, 
+            "wheels": 4,
             "make": lambda doc: "Mazda"
         }, traits=["timestamped", "versioned"])
 
@@ -211,7 +211,7 @@ class TestFactory(unittest.TestCase):
         }, parent="timestamped")
 
         factory.default({
-            "wheels": 4, 
+            "wheels": 4,
             "make": lambda doc: "Mazda"
         }, traits=["versioned"])
 
@@ -257,7 +257,7 @@ class TestFactory(unittest.TestCase):
         factory.trait("timestamped", {
             "created": lambda doc: datetime(2001, 1, 1, 1, 1, 1)
         })
-        
+
         factory.trait("versioned", {
             "v": 3
         }, parent="timestamped")
@@ -265,7 +265,7 @@ class TestFactory(unittest.TestCase):
         factory.document("car", {
             "wheels": 4
         }, traits=["versioned"])
-        
+
         factory.document("mazda", {
             "make": lambda doc: "Mazda"
         }, parent="car")
@@ -309,7 +309,7 @@ class TestFactory(unittest.TestCase):
         factory.document("user", {
             "first_name": 'John',
             "last_name": 'Smith',
-            "age": 32, 
+            "age": 32,
             "alerts": factory.embed("alert_prefs")
         })
         self.assertDictEqual(factory.build("user"), {
@@ -322,34 +322,6 @@ class TestFactory(unittest.TestCase):
         })
 
 
-    def test_list_fragments(self):
-        factory = Factory(self.collection)
-        factory.fragment("alert_prefs", {
-            "emails": True
-        })
-        factory.fragment("alert_list", [
-            "thing",
-            factory.embed("alert_prefs")
-        ])
-        factory.document("user", {
-            "first_name": 'John',
-            "last_name": 'Smith',
-            "age": 32, 
-            "alerts": factory.embed("alert_list")
-        })
-        self.assertDictEqual(factory.build("user"), {
-            "first_name": "John",
-            "last_name": "Smith",
-            "age": 32,
-            "alerts": [
-                "thing",
-                {
-                    "emails": True
-                }
-            ]
-        })
-
-
     def test_fragments_with_traits(self):
         factory = Factory(self.collection)
         factory.trait('versioned', {"v": 5})
@@ -359,7 +331,7 @@ class TestFactory(unittest.TestCase):
         factory.document("user", {
             "first_name": 'John',
             "last_name": 'Smith',
-            "age": 32, 
+            "age": 32,
             "alerts": factory.embed("alert_prefs")
         })
         self.assertDictEqual(factory.build("user"), {
@@ -380,7 +352,7 @@ class TestFactory(unittest.TestCase):
         factory.document("user", {
             "first_name": 'John',
             "last_name": 'Smith',
-            "age": 32, 
+            "age": 32,
             "alerts": factory.embed("alert_prefs")
         })
         self.assertDictEqual(factory.build("user"), {
@@ -402,7 +374,7 @@ class TestFactory(unittest.TestCase):
         factory.document("user", {
             "first_name": 'John',
             "last_name": 'Smith',
-            "age": 32, 
+            "age": 32,
             "alerts": factory.embed("alert_prefs")
         })
         self.assertDictEqual(factory.build("user"), {
@@ -411,6 +383,37 @@ class TestFactory(unittest.TestCase):
             "age": 32,
             "alerts": {
                 "emails": True,
+                "v": 5
+            }
+        })
+
+
+    def test_multiple_fragments_with_common_parent(self):
+        factory = Factory(self.collection)
+        factory.fragment('versioned', {"v": 5})
+        factory.fragment("alert_prefs", {
+            "emails": True
+        }, parent='versioned')
+        factory.fragment('audit_trail', {
+            "actions": ['created', 'updated']
+        }, parent='versioned')
+        factory.document("user", {
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32,
+            "alerts": factory.embed("alert_prefs"),
+            "audit_trail": factory.embed("audit_trail")
+        })
+        self.assertDictEqual(factory.build("user"), {
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "alerts": {
+                "emails": True,
+                "v": 5
+            },
+            "audit_trail": {
+                "actions": ['created', 'updated'],
                 "v": 5
             }
         })
@@ -522,7 +525,7 @@ class TestFactory(unittest.TestCase):
         factory = Factory(self.collection)
         with self.assertRaises(NonExistentDocumentException):
             factory.build()
-        
+
 
     def test_build_named_document(self):
         def full_name(doc):
