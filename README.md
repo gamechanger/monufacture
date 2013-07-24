@@ -471,7 +471,7 @@ with factory("game", db.games):
 
 ---
 
-### `dbref_to(factory, [document])`
+### `dbref_to(factory, [document], **overrides)`
 
 Very similar to the `id_of` helper, only the inserted reference to the created document is a MongoDB DBRef structure rather than just an _id. 
 
