@@ -151,6 +151,19 @@ class TestHelperFunctions(unittest.TestCase):
         create.assert_called_with("user", "bob")
 
 
+    @patch('monufacture.create')
+    @patch('monufacture.get_factory')
+    def test_dbref_to_with_overrides(self, get_factory, create):
+        factory = Mock()
+        factory.collection = Mock()
+        factory.collection.name = "users"
+        get_factory.return_value = factory
+        create.return_value = {"_id": 1234}
+        func = dbref_to("user", "bob", foo="bar")
+        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        create.assert_called_with("user", "bob", foo="bar")
+
+
     @freeze_time('2012-01-14 03:21:34')
     def test_date_now(self):
         func = date()
