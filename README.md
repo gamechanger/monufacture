@@ -481,6 +481,7 @@ Very similar to the `id_of` helper, only the inserted reference to the created d
 | -------- | ----------- |
 | `factory`  | The name of the factory to use to create the depended-on document. | 
 | `document` | The named document within the factory to create. If not provided the default document is created. *Optional* |
+| `**overrides` | Override field values to be passed to the document being created. Values can be literals or functions. Functions are passed the current node (in a similar manner to the dependency helper) and must return a literal value.|
 
 #### Example
 ```python
@@ -497,7 +498,7 @@ with factory("team", db.teams):
 # When a "game" is created, we'll also create two teams and reference them by _id
 with factory("game", db.games):
     default({
-        "home_team":     dbref_to("team")
+        "home_team":     dbref_to("team", league="NL")
         "away_team":     dbref_to("team")
     })
 ```
