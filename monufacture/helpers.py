@@ -86,13 +86,13 @@ def random_text(length=10, spaces=False, digits=False, upper=True,
     return build
 
 
-def dbref_to(factory, document=None):
+def dbref_to(factory, document=None, **overrides):
     """Create a DBRef-type subdoc structure linking to a new instance of the
     given named factory type."""
     
     def build(*args):
         return {
-            "$id": monufacture.create(factory, document)["_id"],
+            "$id": monufacture.create(factory, document, **overrides)["_id"],
             "$ref": monufacture.get_factory(factory).collection.name
         }
     return build
