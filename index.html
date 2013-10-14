@@ -1,0 +1,1174 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Monufacture by gamechanger</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/gamechanger/monufacture">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/gamechanger/monufacture/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/gamechanger/monufacture/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Monufacture</h1>
+          <p>A Python library for setting up Mongo documents for testing</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/gamechanger">gamechanger</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="monufacture" class="anchor" href="#monufacture"><span class="octicon octicon-link"></span></a>Monufacture</h1>
+
+<p>Monufacture is a simple test data factory framework for Python which aims to make it as easy as possible to setup and teardown predictable test data in Mongo as part of testing functional code. </p>
+
+<p>The API borrows heavily from Thoughtbot's excellent <a href="https://github.com/thoughtbot/factory_girl">factory_girl</a> gem for Ruby.</p>
+
+<p><a href="https://travis-ci.org/gamechanger/monufacture"><img src="https://travis-ci.org/gamechanger/monufacture.png?branch=master" alt="build status" title="Build status"></a></p>
+
+<h1>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h1>
+
+<p>Install via easy_install:</p>
+
+<pre><code>easy_install monufacture
+</code></pre>
+
+<p>Or, via pip:</p>
+
+<pre><code>pip install monufacture
+</code></pre>
+
+<h1>
+<a name="getting-started" class="anchor" href="#getting-started"><span class="octicon octicon-link"></span></a>Getting Started</h1>
+
+<p>To illustrate how to use Monufacture, let's imagine some dull application which uses MongoDB to power a blogging site. We want to test our site's pages to ensure that when we attempt to get a given page it loads the right data, when we attempt to save a new blog post the database is updated, etc. You get the idea.</p>
+
+<p>In order to perform this sort of testing, we usually need some suitable test data in the database in order to run a test. Monufacture helps you do this. Its API provides two related capabilities:</p>
+
+<ol>
+<li>The ability to declare, in a nice, readable format, how to construct test documents. </li>
+<li>The ability to use these declared factories to effortlessly generate as many test documents as you need for your test.</li>
+</ol><p>Going back to our blogging application, let's image our database is pretty simple and has two collections: <code>user</code>, which holds user account information, and <code>blogpost</code> which contains all the data associated with a given post. </p>
+
+<p>If we wanted to use Monufacture to generate test data for this application, we'd start off by declaring factories something like this:</p>
+
+<div class="highlight highlight-python"><pre><span class="n">trait</span><span class="p">(</span><span class="s">"timestamped"</span><span class="p">,</span> <span class="p">{</span>                                              <span class="c"># Traits can be used to declare commonly </span>
+    <span class="s">"created"</span><span class="p">:</span>  <span class="n">ago</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>                                        <span class="c"># used document content which we want to mix</span>
+    <span class="s">"modified"</span><span class="p">:</span> <span class="n">date</span><span class="p">()</span>                                              <span class="c"># into other documents.</span>
+<span class="p">})</span>
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"user"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">users</span><span class="p">):</span>                                     <span class="c"># Declare a factory, providing a name and a Mongo collection object</span>
+
+    <span class="n">default</span><span class="p">({</span>                                                       <span class="c"># Declare the default document for a factory</span>
+        <span class="s">"first_name"</span><span class="p">:</span>   <span class="s">"John"</span><span class="p">,</span>
+        <span class="s">"last_name"</span><span class="p">:</span>    <span class="s">"Smith"</span>
+        <span class="s">"email"</span><span class="p">:</span>    <span class="n">dependent</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="s">"{}.{}@test.com"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>    <span class="c"># The "dependent" helper lets us</span>
+                                            <span class="n">u</span><span class="p">[</span><span class="s">'first_name'</span><span class="p">],</span>        <span class="c"># set field values from other</span>
+                                            <span class="n">u</span><span class="p">[</span><span class="s">'last_name'</span><span class="p">])),</span>       <span class="c"># field values.</span>
+        <span class="s">"password"</span><span class="p">:</span> <span class="s">"abc123"</span><span class="p">,</span>
+    <span class="p">},</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"timestamped"</span><span class="p">])</span>
+
+    <span class="n">document</span><span class="p">(</span><span class="s">"admin"</span><span class="p">,</span> <span class="p">{</span>                                             <span class="c"># In addition to the default factory we can declare</span>
+        <span class="s">"is_admin"</span><span class="p">:</span> <span class="bp">True</span>                                            <span class="c"># additional named factories for special cases.</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"default"</span><span class="p">)</span>                                            <span class="c"># We can also inherit from the default.</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">blogpost</span><span class="p">):</span>
+
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"author"</span><span class="p">:</span>       <span class="n">id_of</span><span class="p">(</span><span class="s">"user"</span><span class="p">),</span>                              <span class="c"># Using id_of we can insert the id of another document</span>
+        <span class="s">"subject"</span><span class="p">:</span>      <span class="n">random_text</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">spaces</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>       <span class="c"># We can generate random text to populate fields</span>
+        <span class="s">"content"</span><span class="p">:</span>      <span class="n">random_text</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">spaces</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+        <span class="s">"published"</span><span class="p">:</span>    <span class="n">ago</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>                            <span class="c"># We can generate a relative datetime</span>
+    <span class="p">},</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"timestamped"</span><span class="p">])</span>
+
+    <span class="n">fragment</span><span class="p">(</span><span class="s">"comment"</span><span class="p">,</span> <span class="p">{</span>                                           <span class="c"># We can declare reusable document fragments to be inserted into documents</span>
+        <span class="s">"commenter"</span><span class="p">:</span>    <span class="p">{</span>
+            <span class="s">"name"</span><span class="p">:</span>         <span class="n">random_text</span><span class="p">(</span><span class="n">spaces</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+            <span class="s">"email"</span><span class="p">:</span>        <span class="n">sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="s">"commenter{}@test.com"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">)),</span>
+            <span class="s">"text"</span><span class="p">:</span>         <span class="n">random_text</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+
+    <span class="n">document</span><span class="p">(</span><span class="s">"with_comments"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"comments"</span><span class="p">:</span>     <span class="n">list_of</span><span class="p">(</span><span class="n">embed</span><span class="p">(</span><span class="s">"comment"</span><span class="p">),</span> <span class="mi">10</span><span class="p">)</span>               <span class="c"># Insert a list of 10 comment fragments</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"default"</span><span class="p">)</span>
+</pre></div>
+
+<p>With these factories registered, we can then use them to generate and automatically teardown test data during testing:</p>
+
+<div class="highlight highlight-python"><pre><span class="k">class</span> <span class="nc">BloggingTestCase</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Create a valid blogpost and its dependencies in the DB</span>
+        <span class="n">blogpost</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">)</span> 
+
+        <span class="c"># Now we can test our application GET method</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">"/blogposts/{}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">blogpost</span><span class="p">[</span><span class="s">"_id"</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s">'subject'</span><span class="p">],</span> <span class="n">blogpost</span><span class="p">[</span><span class="s">'subject'</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">test_create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Builds a new blogpost documents without saving it.</span>
+        <span class="c"># Here we're using the named "with_comments" document</span>
+        <span class="n">new_post</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">,</span> <span class="s">"with_comments"</span><span class="p">)</span> 
+
+        <span class="c"># Test our application POST method saves the new document</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">"/blogposts"</span><span class="p">,</span> <span class="n">new_post</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="mi">201</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotNone</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">blogpost</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s">'_id'</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">test_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Creates 5 blogposts in the database</span>
+        <span class="n">blogposts</span> <span class="o">=</span> <span class="n">create_list</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s">"blogpost"</span><span class="p">)</span>
+
+        <span class="c"># Test we can get all of them</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'/blogposts'</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_other_stuff</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Override default factory-generated values</span>
+        <span class="n">blogpost</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="s">"How I learnt to love Python"</span><span class="p">)</span>
+
+        <span class="c"># Test we can get a post by subject</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'/blogposts?subject={}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">urlencode</span><span class="p">(</span><span class="s">"How I learnt to love Python"</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="s">'_id'</span><span class="p">],</span> <span class="n">blogpost</span><span class="p">[</span><span class="s">'_id'</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Clean up any test documents we created in the database after each test</span>
+        <span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+
+<h1>
+<a name="api-reference" class="anchor" href="#api-reference"><span class="octicon octicon-link"></span></a>API Reference</h1>
+
+<h2>
+<a name="factory-declaration" class="anchor" href="#factory-declaration"><span class="octicon octicon-link"></span></a>Factory Declaration</h2>
+
+<p>Factories are declared by calling the <code>monufacture.factory()</code> method using a <code>with</code> block. </p>
+
+<p>Each factory must be given a name and be provided with a PyMongo collection object which it will use to insert documents it creates.</p>
+
+<p>Inside the factory's <code>with</code> block, the structure and attributes of the documents it will generate are declared using the <code>default</code>, <code>document</code>, <code>trait</code> and <code>fragment</code> methods (described in more detail below):</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">factory</span><span class="p">,</span> <span class="n">trait</span><span class="p">,</span> <span class="n">embed</span><span class="p">,</span> <span class="n">fragment</span><span class="p">,</span> <span class="n">document</span><span class="p">,</span> <span class="n">default</span>
+<span class="kn">from</span> <span class="nn">monugacture.helpers</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">ago</span><span class="p">,</span> <span class="n">list_of</span><span class="p">,</span> <span class="n">random_text</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>   <span class="c"># All documents will be written to the "vehicles" collection in MongoDB.</span>
+    <span class="n">trait</span><span class="p">(</span><span class="s">"car"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"wheels"</span><span class="p">:</span>       <span class="mi">4</span>
+    <span class="p">})</span>
+
+    <span class="n">trait</span><span class="p">(</span><span class="s">"bike"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"wheels"</span><span class="p">:</span>       <span class="mi">2</span>
+    <span class="p">})</span>
+
+    <span class="n">trait</span><span class="p">(</span><span class="s">"new"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"is_new"</span><span class="p">:</span>       <span class="bp">True</span>
+        <span class="s">"purchased"</span><span class="p">:</span>    <span class="n">date</span><span class="p">()</span>
+    <span class="p">})</span>
+
+    <span class="n">trait</span><span class="p">(</span><span class="s">"used"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"is_new"</span><span class="p">:</span>       <span class="bp">False</span>
+        <span class="s">"num_owners"</span><span class="p">:</span>   <span class="mi">2</span>
+        <span class="s">"purchased"</span><span class="p">:</span>    <span class="n">ago</span><span class="p">(</span><span class="n">years</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="s">"history"</span><span class="p">:</span>      <span class="n">list_of</span><span class="p">(</span><span class="n">embed</span><span class="p">(</span><span class="s">"service_record"</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">})</span>
+
+    <span class="n">fragment</span><span class="p">(</span><span class="s">"service_record"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"date"</span><span class="p">:</span>         <span class="n">ago</span><span class="p">(</span><span class="n">months</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="s">"repairs"</span><span class="p">:</span>      <span class="n">random_text</span><span class="p">(</span><span class="n">length</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">spaces</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="p">})</span>
+
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"model"</span><span class="p">:</span>        <span class="n">random_text</span><span class="p">(</span><span class="n">spaces</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="s">"price"</span><span class="p">:</span>        <span class="mf">1234.56</span>
+    <span class="p">})</span>
+
+    <span class="n">document</span><span class="p">(</span><span class="s">"new_bmw_motorbike"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"make"</span><span class="p">:</span>         <span class="s">"BMW"</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"default"</span><span class="p">,</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"new"</span><span class="p">,</span> <span class="s">"bike"</span><span class="p">])</span>
+
+    <span class="n">document</span><span class="p">(</span><span class="s">"used_jaguar_car"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"make"</span><span class="p">:</span>         <span class="s">"Jaguar"</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"default"</span><span class="p">,</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"used"</span><span class="p">,</span> <span class="s">"car"</span><span class="p">])</span>
+</pre></div>
+
+<h3>
+<a name="documents" class="anchor" href="#documents"><span class="octicon octicon-link"></span></a>Documents</h3>
+
+<p>Documents are declared within factories and are ultimately what factories build. Any number of named document structures may declared within a single factory (e.g. to test different scenarios) but all declared documents must be valid for Mongo collection associated with the factory. </p>
+
+<p>To declare a document, use the <code>document</code> method inside an enclosing <code>factory</code> declaration:</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">document</span><span class="p">,</span> <span class="n">factory</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>
+    <span class="n">document</span><span class="p">(</span><span class="s">"ford"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"make"</span><span class="p">:</span>     <span class="s">"Ford"</span><span class="p">,</span>
+        <span class="s">"model"</span><span class="p">:</span>    <span class="s">"Taurus"</span>
+    <span class="p">})</span>
+</pre></div>
+
+<p>The above example declares a static document which when generated (see "Using Factories") will always contain the same two fields with the same values.</p>
+
+<p>To make things a bit more interesting, Monufacture provides inline helper functions (see "Helpers") which can be used to dynamically generate field values:</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">document</span><span class="p">,</span> <span class="n">factory</span>
+<span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">random_text</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>
+    <span class="n">document</span><span class="p">(</span><span class="s">"ford"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"make"</span><span class="p">:</span>     <span class="s">"Ford"</span><span class="p">,</span>
+        <span class="s">"model"</span><span class="p">:</span>    <span class="n">random_text</span><span class="p">()</span>
+    <span class="p">})</span>
+</pre></div>
+
+<p>The above example factory would generate a different value for the <code>"model"</code> field each time a document is generated.</p>
+
+<h4>
+<a name="the-default-document" class="anchor" href="#the-default-document"><span class="octicon octicon-link"></span></a>The "default()" document</h4>
+
+<p>Within each factory, a single "default" document structure should be declared. This is usually the simplest, most generic version of a document which is likely to be useful in most test contexts:</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">default</span><span class="p">,</span> <span class="n">factory</span>
+<span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">random_text</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"make"</span><span class="p">:</span>     <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"model"</span><span class="p">:</span>    <span class="n">random_text</span><span class="p">()</span>
+    <span class="p">})</span>
+</pre></div>
+
+<h3>
+<a name="inheritance" class="anchor" href="#inheritance"><span class="octicon octicon-link"></span></a>Inheritance</h3>
+
+<p>When declaring multiple flavours of a document in a factory, it's common to want to reuse a base document structure in many documents. For this, Monufacture allows document declarations to inherit from one another making this process nice and DRY.</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">document</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">default</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"cc"</span><span class="p">:</span>       <span class="mi">1500</span>
+    <span class="p">})</span>
+
+    <span class="n">document</span><span class="p">(</span><span class="s">"car"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"wheels"</span><span class="p">:</span>   <span class="mi">4</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"default"</span><span class="p">)</span>        <span class="c"># Inherits fields from the default document</span>
+
+    <span class="n">document</span><span class="p">(</span><span class="s">"bike"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"wheels"</span><span class="p">:</span>   <span class="mi">2</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"default"</span><span class="p">)</span>        <span class="c"># Inherits fields from the default document</span>
+
+    <span class="n">document</span><span class="p">(</span><span class="s">"mazda"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"make"</span><span class="p">:</span>     <span class="s">"Mazda"</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"car"</span><span class="p">)</span>            <span class="c"># Inherits from the "car" and default documents</span>
+
+    <span class="n">document</span><span class="p">(</span><span class="s">"mazda_mx5"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"model"</span><span class="p">:</span>    <span class="s">"MX-5"</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"mazda"</span><span class="p">)</span>          <span class="c"># Inherits from the "mazda", car" and default documents</span>
+</pre></div>
+
+<p>Note:</p>
+
+<ul>
+<li>If a document redeclares a field already declared in a parent document, the child document's value wins.</li>
+<li>Inheritance only works within the scope of a single factory. Cross-factory inheritance is not supported.</li>
+</ul><h3>
+<a name="traits" class="anchor" href="#traits"><span class="octicon octicon-link"></span></a>Traits</h3>
+
+<p>Traits allow common sets field values to be declared separately and then "mixed in" to as many document declarations as needed. </p>
+
+<p>Traits may be declared globally so that they may be used within all factories, or scoped inside just one factory.</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">trait</span><span class="p">,</span> <span class="n">document</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">default</span>
+<span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">ago</span><span class="p">,</span> <span class="n">random_text</span>
+
+
+<span class="c"># Declare a global "timestamped" trait which can be used in any factory</span>
+<span class="n">trait</span><span class="p">(</span><span class="s">"timestamped"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"created"</span><span class="p">:</span>      <span class="n">ago</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+    <span class="s">"modified"</span><span class="p">:</span>     <span class="n">ago</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="p">})</span>
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>
+
+    <span class="c"># Declare some reusable traits </span>
+    <span class="n">trait</span><span class="p">(</span><span class="s">"honda"</span><span class="p">,</span> <span class="p">{</span><span class="s">"make"</span><span class="p">:</span> <span class="s">"Honda"</span><span class="p">})</span>
+    <span class="n">trait</span><span class="p">(</span><span class="s">"bmw"</span><span class="p">,</span> <span class="p">{</span><span class="s">"make"</span><span class="p">:</span> <span class="s">"BMW"</span><span class="p">})</span>
+    <span class="n">trait</span><span class="p">(</span><span class="s">"bike"</span><span class="p">,</span> <span class="p">{</span><span class="s">"wheels"</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
+    <span class="n">trait</span><span class="p">(</span><span class="s">"car"</span><span class="p">,</span> <span class="p">{</span><span class="s">"wheels"</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span><span class="n">m</span>
+
+    <span class="c"># Declare various documents by mixing up combinations of traits</span>
+    <span class="n">document</span><span class="p">(</span><span class="s">"bmw_bike"</span><span class="p">,</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"bmw"</span><span class="p">,</span> <span class="s">"bike"</span><span class="p">,</span> <span class="s">"timestamped"</span><span class="p">])</span>
+    <span class="n">document</span><span class="p">(</span><span class="s">"honda_bike"</span><span class="p">,</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"honda"</span><span class="p">,</span> <span class="s">"bike"</span><span class="p">,</span> <span class="s">"timestamped"</span><span class="p">])</span>
+    <span class="n">document</span><span class="p">(</span><span class="s">"bmw_car"</span><span class="p">,</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"bmw"</span><span class="p">,</span> <span class="s">"car"</span><span class="p">,</span> <span class="s">"timestamped"</span><span class="p">])</span>
+    <span class="n">document</span><span class="p">(</span><span class="s">"honda_car"</span><span class="p">,</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"honda"</span><span class="p">,</span> <span class="s">"car"</span><span class="p">,</span> <span class="s">"timestamped"</span><span class="p">])</span>
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"customer"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">customers</span><span class="p">):</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"name"</span><span class="p">:</span>     <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"address:   {</span>
+            <span class="s">"line_1"</span><span class="p">:</span>   <span class="n">random_text</span><span class="p">(),</span>
+            <span class="s">"line_2"</span><span class="p">:</span>   <span class="n">random_text</span><span class="p">(),</span>
+            <span class="s">"zip"</span><span class="p">:</span>      <span class="n">random_text</span><span class="p">(</span><span class="n">digits</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">},</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"timestamped"</span><span class="p">])</span>  <span class="c"># "timestamped" trait used in multiple places</span>
+</pre></div>
+
+<p>Note:</p>
+
+<ul>
+<li>In the event a trait and the document referring to that trait declare the same field, the document's definition takes precedence.</li>
+</ul><h3>
+<a name="fragments" class="anchor" href="#fragments"><span class="octicon octicon-link"></span></a>Fragments</h3>
+
+<p>Fragments are a bit like traits in that they allow reusable, well, fragments to be declared separately and then included in multiple document declarations. However, whereas traits get "mixed in" to a document, fragments are designed to be embedded into a document at a certain insertion point using the <code>embed</code> function.</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">trait</span><span class="p">,</span> <span class="n">document</span><span class="p">,</span> <span class="n">factory</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">fragment</span><span class="p">,</span> <span class="n">embed</span>
+<span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">ago</span><span class="p">,</span> <span class="n">random_text</span><span class="p">,</span> <span class="n">list_of</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>
+    <span class="c"># Declare an "owner" fragment we can use in multiple places</span>
+    <span class="n">fragment</span><span class="p">(</span><span class="s">"owner"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"name"</span><span class="p">:</span>             <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"purchased"</span><span class="p">:</span>        <span class="n">ago</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="n">random_number</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="mi">200</span><span class="p">))</span>
+    <span class="p">})</span>
+
+    <span class="c"># Now declare a document where we use the "owner" fragment to</span>
+    <span class="c"># embed details of a current owner and a list of previous owners.</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"make"</span><span class="p">:</span>             <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"model"</span><span class="p">:</span>            <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"current_owner"</span><span class="p">:</span>    <span class="n">embed</span><span class="p">(</span><span class="s">"owner"</span><span class="p">)</span>
+        <span class="s">"previous_owners"</span><span class="p">:</span>  <span class="n">list_of</span><span class="p">(</span><span class="n">embed</span><span class="p">(</span><span class="s">"owner"</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">})</span>
+</pre></div>
+
+<p>Fragments may be used inside traits:</p>
+
+<div class="highlight highlight-python"><pre><span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>
+    <span class="c"># Declare an "owner" fragment we can use in multiple places</span>
+    <span class="n">fragment</span><span class="p">(</span><span class="s">"owner"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"name"</span><span class="p">:</span>             <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"purchased"</span><span class="p">:</span>        <span class="n">ago</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="n">random_number</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="mi">200</span><span class="p">))</span>
+    <span class="p">})</span>
+
+    <span class="n">trait</span><span class="p">(</span><span class="s">"preowned"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"previous_owners"</span><span class="p">:</span>  <span class="n">list_of</span><span class="p">(</span><span class="n">embed</span><span class="p">(</span><span class="s">"owner"</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">})</span>
+
+    <span class="c"># Now declare a document where we use the "owner" fragment to</span>
+    <span class="c"># embed details of a current owner and a list of previous owners.</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"make"</span><span class="p">:</span>             <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"model"</span><span class="p">:</span>            <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"current_owner"</span><span class="p">:</span>    <span class="n">embed</span><span class="p">(</span><span class="s">"owner"</span><span class="p">,</span> <span class="n">purchased</span><span class="o">=</span><span class="n">date</span><span class="p">())</span>
+    <span class="p">},</span> <span class="n">traits</span><span class="o">=</span><span class="p">[</span><span class="s">"preowned"</span><span class="p">])</span>
+</pre></div>
+
+<p>Fragments also support inheritance in the same manner as documents:</p>
+
+<div class="highlight highlight-python"><pre><span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"vehicle"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">vehicles</span><span class="p">):</span>
+    <span class="n">fragment</span><span class="p">(</span><span class="s">"identity"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"id"</span><span class="p">:</span>               <span class="n">object_id</span><span class="p">()</span>
+    <span class="p">})</span>
+
+    <span class="c"># Declare an "owner" fragment we can use in multiple places</span>
+    <span class="n">fragment</span><span class="p">(</span><span class="s">"owner"</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s">"name"</span><span class="p">:</span>             <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"purchased"</span><span class="p">:</span>        <span class="n">ago</span><span class="p">(</span><span class="n">weeks</span><span class="o">=</span><span class="n">random_number</span><span class="p">(</span><span class="nb">max</span><span class="o">=</span><span class="mi">200</span><span class="p">))</span>
+    <span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"identity"</span><span class="p">)</span>
+
+</pre></div>
+
+<p>Notes:</p>
+
+<ul>
+<li>Fragments must be declared inside the scope of a <code>with factory():</code> block. Global fragments are not supported.</li>
+</ul><h2>
+<a name="helpers" class="anchor" href="#helpers"><span class="octicon octicon-link"></span></a>Helpers</h2>
+
+<p>Helpers are useful placeholder functions which can be used to insert generated data into documents at <em>build time</em>.</p>
+
+<p>At their most basic level, helpers allow you to generate simple primitive values for fields (e.g. <code>random_text</code>). However, some of the more sophisticated helpers allow to you declare large document structures and satisfy dependencies between collections with the minimum of effort.</p>
+
+<p>All helpers live in the <code>monufacture.helpers</code> module.</p>
+
+<hr><h3>
+<a name="sequencefn" class="anchor" href="#sequencefn"><span class="octicon octicon-link"></span></a><code>sequence([fn])</code>
+</h3>
+
+<p>Defines a sequential value for a document attribute. On each successive invocation of this helper (i.e. when a new instance of a document is created by the enclosing factory) the given function is passed a sequentially incrementing number which should be used to return a dynamic value to be used on the model instance.</p>
+
+<p>When used without passing a function, this helper just inserts the raw sequence number into the document.</p>
+
+<h4>
+<a name="arguments" class="anchor" href="#arguments"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td><code>fn(n)</code></td>
+<td>A function/lambda which returns a value based on the given sequence value. <em>Optional</em>
+</td>
+</tr></tbody>
+</table><h4>
+<a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">sequence</span>
+
+
+<span class="c"># Generate a unique email address for each created user.</span>
+<span class="n">document</span><span class="p">(</span><span class="s">"user"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"email"</span><span class="p">:</span> <span class="n">sequence</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="s">"user{}@test.com"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+<span class="p">})</span>
+</pre></div>
+
+<hr><h3>
+<a name="dependentfn" class="anchor" href="#dependentfn"><span class="octicon octicon-link"></span></a><code>dependent(fn)</code>
+</h3>
+
+<p>Allows a dependent value to be dynamically generated from the value(s) of other attributes in the document. </p>
+
+<h4>
+<a name="arguments-1" class="anchor" href="#arguments-1"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td><code>fn(doc)</code></td>
+<td>A function/lambda which returns a value based on other value(s) found on the provided document node. The provided <code>doc</code> node is the node is the document on which the field being set lives.</td>
+</tr></tbody>
+</table><h4>
+<a name="example-1" class="anchor" href="#example-1"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">dependent</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"user"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"first"</span><span class="p">:</span>    <span class="s">"John"</span><span class="p">,</span>
+    <span class="s">"last"</span><span class="p">:</span>     <span class="s">"Smith"</span><span class="p">,</span>
+    <span class="s">"email"</span><span class="p">:</span>    <span class="n">dependent</span><span class="p">(</span><span class="k">lambda</span> <span class="n">doc</span><span class="p">:</span> <span class="s">"{}{}@test.com"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">doc</span><span class="p">[</span><span class="s">'first'</span><span class="p">],</span> <span class="n">doc</span><span class="p">[</span><span class="s">'last'</span><span class="p">]))</span>
+<span class="p">})</span>
+</pre></div>
+
+<p>Tip: The document object passed to your generator function has a <code>head</code> attribute which refers back to the root of the document. This is particularly useful if you need to insert a dependent value, which refers to a non-sibling field, into a nested portion of your document.</p>
+
+<hr><h3>
+<a name="id_offactory-document-overrides" class="anchor" href="#id_offactory-document-overrides"><span class="octicon octicon-link"></span></a><code>id_of(factory, [document], **overrides)</code>
+</h3>
+
+<p>Creates a document in the database using the given factory (and optional document name) and then inserts the _id of the created document as the value of the referring field. This is a particularly effective way to effortlessly create a hierarchy of dependent documents for testing purposes. Simply declaring a document's dependency in this way will result in that dependency being created at build time. Yay!</p>
+
+<p>You can also provide overrides to the document being created which can either be literals or functions evaluated on creation.</p>
+
+<h4>
+<a name="arguments-2" class="anchor" href="#arguments-2"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>factory</code></td>
+<td>The name of the factory to use to create the depended-on document.</td>
+</tr>
+<tr>
+<td><code>document</code></td>
+<td>The named document within the factory to create. If not provided the default document is created. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td><code>**overrides</code></td>
+<td>Override field values to be passed to the document being created. Values can be literals or functions. Functions are passed the current node (in a similar manner to the dependency helper) and must return a literal value.</td>
+</tr>
+</tbody>
+</table><h4>
+<a name="example-2" class="anchor" href="#example-2"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">id_of</span><span class="p">,</span> <span class="n">random_text</span><span class="p">,</span> <span class="n">list_of</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"team"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">teams</span><span class="p">):</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"name"</span><span class="p">:</span>             <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"players"</span><span class="p">:</span>          <span class="n">list_of</span><span class="p">(</span><span class="n">random_text</span><span class="p">(),</span> <span class="mi">11</span><span class="p">)</span>
+    <span class="p">})</span>
+
+
+<span class="c"># When a "game" is created, we'll also create two teams and reference them by _id</span>
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"game"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">games</span><span class="p">):</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"home_team_id"</span><span class="p">:</span>     <span class="n">id_of</span><span class="p">(</span><span class="s">"team"</span><span class="p">)</span>
+        <span class="s">"away_team_id"</span><span class="p">:</span>     <span class="n">id_of</span><span class="p">(</span><span class="s">"team"</span><span class="p">)</span>
+    <span class="p">})</span>
+
+<span class="c"># We could also provide an override for each team name as appropriate</span>
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"game"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">games</span><span class="p">):</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"home_team_name"</span><span class="p">:</span>   <span class="n">text</span><span class="p">(),</span>
+        <span class="s">"away_team_name"</span><span class="p">:</span>   <span class="n">text</span><span class="p">(),</span>
+        <span class="s">"home_team_id"</span><span class="p">:</span>     <span class="n">id_of</span><span class="p">(</span><span class="s">"team"</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="k">lambda</span> <span class="n">node</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="s">'home_team_name'</span><span class="p">])</span>
+        <span class="s">"away_team_id"</span><span class="p">:</span>     <span class="n">id_of</span><span class="p">(</span><span class="s">"team"</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="k">lambda</span> <span class="n">node</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="s">'away_team_name'</span><span class="p">])</span>
+    <span class="p">})</span>
+</pre></div>
+
+<hr><h3>
+<a name="dbref_tofactory-document-overrides" class="anchor" href="#dbref_tofactory-document-overrides"><span class="octicon octicon-link"></span></a><code>dbref_to(factory, [document], **overrides)</code>
+</h3>
+
+<p>Very similar to the <code>id_of</code> helper, only the inserted reference to the created document is a MongoDB DBRef structure rather than just an _id. </p>
+
+<h4>
+<a name="arguments-3" class="anchor" href="#arguments-3"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>factory</code></td>
+<td>The name of the factory to use to create the depended-on document.</td>
+</tr>
+<tr>
+<td><code>document</code></td>
+<td>The named document within the factory to create. If not provided the default document is created. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td><code>**overrides</code></td>
+<td>Override field values to be passed to the document being created. Values can be literals or functions. Functions are passed the current node (in a similar manner to the dependency helper) and must return a literal value.</td>
+</tr>
+</tbody>
+</table><h4>
+<a name="example-3" class="anchor" href="#example-3"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">dbref_to</span><span class="p">,</span> <span class="n">random_text</span><span class="p">,</span> <span class="n">list_of</span>
+
+
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"team"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">teams</span><span class="p">):</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"name"</span><span class="p">:</span>             <span class="n">random_text</span><span class="p">(),</span>
+        <span class="s">"players"</span><span class="p">:</span>          <span class="n">list_of</span><span class="p">(</span><span class="n">random_text</span><span class="p">(),</span> <span class="mi">11</span><span class="p">)</span>
+    <span class="p">})</span>
+
+
+<span class="c"># When a "game" is created, we'll also create two teams and reference them by _id</span>
+<span class="k">with</span> <span class="n">factory</span><span class="p">(</span><span class="s">"game"</span><span class="p">,</span> <span class="n">db</span><span class="o">.</span><span class="n">games</span><span class="p">):</span>
+    <span class="n">default</span><span class="p">({</span>
+        <span class="s">"home_team"</span><span class="p">:</span>     <span class="n">dbref_to</span><span class="p">(</span><span class="s">"team"</span><span class="p">,</span> <span class="n">league</span><span class="o">=</span><span class="s">"NL"</span><span class="p">)</span>
+        <span class="s">"away_team"</span><span class="p">:</span>     <span class="n">dbref_to</span><span class="p">(</span><span class="s">"team"</span><span class="p">)</span>
+    <span class="p">})</span>
+</pre></div>
+
+<hr><h3>
+<a name="random_textlength-spaces-digits-upper-lower-other_chars" class="anchor" href="#random_textlength-spaces-digits-upper-lower-other_chars"><span class="octicon octicon-link"></span></a><code>random_text([[[[[[length], spaces], digits], upper], lower], other_chars])</code>
+</h3>
+
+<p><em>Alias</em>: <code>text</code></p>
+
+<p>Inserts a random piece of text adhereing the provided criteria.</p>
+
+<h4>
+<a name="arguments-4" class="anchor" href="#arguments-4"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>length</code></td>
+<td>The length of the string to return. <em>Default: 10</em>. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td><code>spaces</code></td>
+<td>Include spaces? <em>Default: False</em>. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td><code>digits</code></td>
+<td>Include numeric digits? <em>Default: False</em>. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td><code>upper</code></td>
+<td>Include uppercase characters? <em>Default: True</em>. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td><code>lower</code></td>
+<td>Include lowercase characters? <em>Default: True</em>. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td><code>other_chars</code></td>
+<td>A list of other characters to include (e.g. <code>[".", "?"]</code>). <em>Optional</em>
+</td>
+</tr>
+</tbody>
+</table><h4>
+<a name="example-4" class="anchor" href="#example-4"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">random_text</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"subject"</span><span class="p">:</span>  <span class="n">random_text</span><span class="p">(</span><span class="n">spaces</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">200</span><span class="p">),</span>
+    <span class="s">"content"</span><span class="p">:</span>  <span class="n">random_text</span><span class="p">(</span><span class="n">spaces</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">other_chars</span><span class="o">=</span><span class="p">[</span><span class="s">"."</span><span class="p">]</span> 
+<span class="p">})</span>
+
+</pre></div>
+
+<hr><h3>
+<a name="random_numbermax" class="anchor" href="#random_numbermax"><span class="octicon octicon-link"></span></a><code>random_number(max)</code>
+</h3>
+
+<h3>
+<a name="random_numbermin-max" class="anchor" href="#random_numbermin-max"><span class="octicon octicon-link"></span></a><code>random_number(min, max)</code>
+</h3>
+
+<p><em>Alias</em>: <code>number</code></p>
+
+<p>Inserts an integer in the given range into the document.</p>
+
+<h4>
+<a name="arguments-5" class="anchor" href="#arguments-5"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code>min</code></td>
+<td>Minimum value of inserted integer. <em>Default: 10</em>. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td><code>max</code></td>
+<td>Maximum value of inserted integer</td>
+</tr>
+</tbody>
+</table><h4>
+<a name="example-5" class="anchor" href="#example-5"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">number</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"user"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"age"</span><span class="p">:</span>  <span class="n">number</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">35</span><span class="p">)</span>
+<span class="p">})</span>
+
+</pre></div>
+
+<hr><h3>
+<a name="dateyear-month-day-hour-minute-second-microsecond" class="anchor" href="#dateyear-month-day-hour-minute-second-microsecond"><span class="octicon octicon-link"></span></a><code>date([[[[[[[year], month], day], hour], minute], second], microsecond])</code>
+</h3>
+
+<p>Inserts a datetime object set to the given time/date. If no arguments are provided, the current datetime is inserted.</p>
+
+<h4>
+<a name="arguments-6" class="anchor" href="#arguments-6"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>year</td>
+<td>The year. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>month</td>
+<td>The month. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>day</td>
+<td>The day. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>hour</td>
+<td>The hour. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>minute</td>
+<td>The minute. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>second</td>
+<td>The second. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>microsecond</td>
+<td>The microsecond. <em>Optional</em>
+</td>
+</tr>
+</tbody>
+</table><h4>
+<a name="example-6" class="anchor" href="#example-6"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">date</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"published"</span><span class="p">:</span>        <span class="n">date</span><span class="p">(</span><span class="mi">2010</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>  <span class="c"># A specific date</span>
+    <span class="s">"last_viewed"</span><span class="p">:</span>      <span class="n">date</span><span class="p">()</span>                      <span class="c"># Right now</span>
+<span class="p">})</span>
+
+</pre></div>
+
+<hr><h3>
+<a name="now" class="anchor" href="#now"><span class="octicon octicon-link"></span></a><code>now()</code>
+</h3>
+
+<p>Inserts the current datetime. This is essentially the same as using the <code>date()</code> helper with no arguments.</p>
+
+<h4>
+<a name="example-7" class="anchor" href="#example-7"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">date</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"published"</span><span class="p">:</span>        <span class="n">now</span><span class="p">()</span>
+<span class="p">})</span>
+
+</pre></div>
+
+<hr><h3>
+<a name="agoyears-months-days-hours-minutes-seconds-microseconds" class="anchor" href="#agoyears-months-days-hours-minutes-seconds-microseconds"><span class="octicon octicon-link"></span></a><code>ago([[[[[[[years], months], days], hours], minutes], seconds], microseconds])</code>
+</h3>
+
+<p>Inserts a datetime set to a date and time a given period before the current date time. Remember, this helper is evaluated at build time, not declaration time. </p>
+
+<h4>
+<a name="arguments-7" class="anchor" href="#arguments-7"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>years</td>
+<td>The years to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>months</td>
+<td>The months to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>days</td>
+<td>The days to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>hours</td>
+<td>The hours to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>minutes</td>
+<td>The minutes to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>seconds</td>
+<td>The seconds to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>microseconds</td>
+<td>The microseconds to include in the delta. <em>Optional</em>
+</td>
+</tr>
+</tbody>
+</table><h4>
+<a name="example-8" class="anchor" href="#example-8"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">ago</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"published"</span><span class="p">:</span>        <span class="n">ago</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">minutes</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<span class="p">})</span>
+</pre></div>
+
+<hr><h3>
+<a name="from_nowyears-months-days-hours-minutes-seconds-microseconds" class="anchor" href="#from_nowyears-months-days-hours-minutes-seconds-microseconds"><span class="octicon octicon-link"></span></a><code>from_now([[[[[[[years], months], days], hours], minutes], seconds], microseconds])</code>
+</h3>
+
+<p>Inserts a datetime set to a date and time a given period after the current date time. Remember, this helper is evaluated at build time, not declaration time. </p>
+
+<h4>
+<a name="arguments-8" class="anchor" href="#arguments-8"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>years</td>
+<td>The years to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>months</td>
+<td>The months to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>days</td>
+<td>The days to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>hours</td>
+<td>The hours to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>minutes</td>
+<td>The minutes to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>seconds</td>
+<td>The seconds to include in the delta. <em>Optional</em>
+</td>
+</tr>
+<tr>
+<td>microseconds</td>
+<td>The microseconds to include in the delta. <em>Optional</em>
+</td>
+</tr>
+</tbody>
+</table><h4>
+<a name="example-9" class="anchor" href="#example-9"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">from_now</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"credit_card"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"expires"</span><span class="p">:</span>        <span class="n">from_now</span><span class="p">(</span><span class="n">years</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">months</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="p">})</span>
+</pre></div>
+
+<hr><h3>
+<a name="list_offn-length" class="anchor" href="#list_offn-length"><span class="octicon octicon-link"></span></a><code>list_of(fn, length)</code>
+</h3>
+
+<p>Used to insert a list of the given length containing the results of invoking a given other helper multiple times. Can be used together with the <code>embed</code> helper to insert multiple copies of a fragment as an embedded collection. </p>
+
+<h4>
+<a name="arguments-9" class="anchor" href="#arguments-9"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>fn</td>
+<td>A call to another helper function which will be used to yield the content of each list entry.</td>
+</tr>
+<tr>
+<td>length</td>
+<td>The length of the required list. The given wrapped helper will be invoked this many times.</td>
+</tr>
+</tbody>
+</table><h4>
+<a name="example-10" class="anchor" href="#example-10"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">list_of</span>
+
+
+<span class="n">fragment</span><span class="p">(</span><span class="s">"player"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"name"</span><span class="p">:</span>         <span class="n">random_text</span><span class="p">(),</span>
+    <span class="s">"number"</span><span class="p">:</span>       <span class="n">sequence</span><span class="p">()</span>
+<span class="p">})</span>
+
+<span class="n">document</span><span class="p">(</span><span class="s">"team"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"players"</span><span class="p">:</span>      <span class="n">list_of</span><span class="p">(</span><span class="n">embed</span><span class="p">(</span><span class="s">"player"</span><span class="p">),</span> <span class="mi">11</span><span class="p">)</span>
+    <span class="s">"coaches"</span><span class="p">:</span>      <span class="n">list_of</span><span class="p">(</span><span class="n">random_text</span><span class="p">(),</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">})</span>
+</pre></div>
+
+<hr><h3>
+<a name="object_id" class="anchor" href="#object_id"><span class="octicon octicon-link"></span></a><code>object_id()</code>
+</h3>
+
+<p>Generates and inserts a new BSON ObjectId at build time. </p>
+
+<h4>
+<a name="example-11" class="anchor" href="#example-11"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">object_id</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"_id"</span><span class="p">:</span>  <span class="n">object_id</span><span class="p">()</span>
+<span class="p">})</span>
+
+</pre></div>
+
+<hr><h3>
+<a name="unionfns" class="anchor" href="#unionfns"><span class="octicon octicon-link"></span></a><code>union(*fns)</code>
+</h3>
+
+<p>Allows the list output of other helper function calls (e.g. <code>list_of</code>) to be unioned into a single list at build time. </p>
+
+<h4>
+<a name="arguments-10" class="anchor" href="#arguments-10"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td><code>*fns</code></td>
+<td>A list of calls to other helper functions, all of which must output lists.</td>
+</tr></tbody>
+</table><h4>
+<a name="example-12" class="anchor" href="#example-12"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">union</span>
+
+
+<span class="n">fragment</span><span class="p">(</span><span class="s">"player"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"name"</span><span class="p">:</span>         <span class="n">random_text</span><span class="p">(),</span>
+    <span class="s">"number"</span><span class="p">:</span>       <span class="n">sequence</span><span class="p">()</span>
+<span class="p">})</span>
+
+<span class="n">fragment</span><span class="p">(</span><span class="s">"injured_player"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"is_injured"</span><span class="p">:</span>   <span class="bp">True</span>
+<span class="p">},</span> <span class="n">parent</span><span class="o">=</span><span class="s">"player"</span><span class="p">)</span>
+
+<span class="n">document</span><span class="p">(</span><span class="s">"team"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"players"</span><span class="p">:</span>      <span class="n">union</span><span class="p">(</span><span class="n">list_of</span><span class="p">(</span><span class="n">embed</span><span class="p">(</span><span class="s">"player"</span><span class="p">),</span> <span class="mi">8</span><span class="p">),</span> <span class="n">list_of</span><span class="p">(</span><span class="n">embed</span><span class="p">(</span><span class="s">"injured"</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+<span class="p">})</span>
+</pre></div>
+
+<hr><h3>
+<a name="one_ofvalues" class="anchor" href="#one_ofvalues"><span class="octicon octicon-link"></span></a><code>one_of(*values)</code>
+</h3>
+
+<p>Allows a list of possible value to be provided for a field. At build time one of the supplied values will be picked at random and inserted. </p>
+
+<h4>
+<a name="arguments-11" class="anchor" href="#arguments-11"><span class="octicon octicon-link"></span></a>Arguments</h4>
+
+<table>
+<thead><tr>
+<th>Argument</th>
+<th>Description</th>
+</tr></thead>
+<tbody><tr>
+<td>*values</td>
+<td>The list of possible values the intended field can take.</td>
+</tr></tbody>
+</table><h4>
+<a name="example-13" class="anchor" href="#example-13"><span class="octicon octicon-link"></span></a>Example</h4>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture.helpers</span> <span class="kn">import</span> <span class="n">one_of</span>
+
+
+<span class="n">document</span><span class="p">(</span><span class="s">"user"</span><span class="p">,</span> <span class="p">{</span>
+    <span class="s">"status"</span><span class="p">:</span>       <span class="n">one_of</span><span class="p">(</span><span class="s">'NEW'</span><span class="p">,</span> <span class="s">'ACT'</span><span class="p">,</span> <span class="s">'DEL'</span><span class="p">)</span>
+<span class="p">})</span>
+
+</pre></div>
+
+<h2>
+<a name="writing-custom-helpers" class="anchor" href="#writing-custom-helpers"><span class="octicon octicon-link"></span></a>Writing Custom Helpers</h2>
+
+<p>As well as the out-of-the-box helpers documented in the previous section, you are of course free to implement your own custom helpers to meet the needs of you specific business domain. </p>
+
+<p>Implementing a custom helper couldn't be easier. A helper is just a function that accepts whatever specific arguments it needs and returns a function to be called at build time which should return the actual value to be inserted in the document. The returned function should accept the document as its only argument.</p>
+
+<h3>
+<a name="example-14" class="anchor" href="#example-14"><span class="octicon octicon-link"></span></a>Example</h3>
+
+<div class="highlight highlight-python"><pre><span class="c"># A custom helper which inserts a token</span>
+<span class="k">def</span> <span class="nf">token</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">build</span>
+</pre></div>
+
+<h2>
+<a name="using-factories" class="anchor" href="#using-factories"><span class="octicon octicon-link"></span></a>Using Factories</h2>
+
+<p>Once some factories have been declared, Monufacture let's you use factories to generate documents via two main routes: "building" and "creating".</p>
+
+<h3>
+<a name="building-documents" class="anchor" href="#building-documents"><span class="octicon octicon-link"></span></a>Building Documents</h3>
+
+<p>"Building" a document means generating an instance using the factory without saving it in the database. Building supports a variety of options:</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">build</span><span class="p">,</span> <span class="n">build_list</span>
+
+
+<span class="c"># Build the default document from the "car" factory</span>
+<span class="n">car</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">"car"</span><span class="p">)</span>
+
+
+<span class="c"># Build the "mazda" document from the "car" factory</span>
+<span class="n">mazda</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">"car"</span><span class="p">,</span> <span class="s">"mazda"</span><span class="p">)</span>
+
+
+<span class="c"># Build the default document from the "car" factory overriding the value for the "wheels" attribute</span>
+<span class="n">three_wheeler</span> <span class="o">=</span> <span class="n">build</span><span class="p">(</span><span class="s">"car"</span><span class="p">,</span> <span class="n">wheels</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+
+<span class="c"># Build a list of 5 cars</span>
+<span class="n">cars</span> <span class="o">=</span> <span class="n">build_list</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s">"car"</span><span class="p">)</span>
+
+
+<span class="c"># Build a list of 10 mazdas</span>
+<span class="n">mazdas</span> <span class="o">=</span> <span class="n">build_list</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s">"car"</span><span class="p">,</span> <span class="s">"mazda"</span><span class="p">)</span>
+
+
+<span class="c"># Build a list of 7 cars, overriding the "wheels" attribute on each</span>
+<span class="n">three_wheelers</span> <span class="o">=</span> <span class="n">build_list</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="s">"car"</span><span class="p">,</span> <span class="n">wheels</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+</pre></div>
+
+<p>Note:</p>
+
+<ul>
+<li>Overrides will be inserted into the document whether the given attribute already exists or not. </li>
+</ul><h3>
+<a name="creating-documents" class="anchor" href="#creating-documents"><span class="octicon octicon-link"></span></a>Creating Documents</h3>
+
+<p>The API for "creating" document is essentially identical to that for "building", the only difference is that when creating a document, it is inserted into the MongoDB collection associated with the factory and is given an <code>_id</code>. </p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">create</span><span class="p">,</span> <span class="n">create_list</span>
+
+
+<span class="c"># Create the default document from the "car" factory</span>
+<span class="n">car</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="s">"car"</span><span class="p">)</span>
+
+
+<span class="c"># Create the "mazda" document from the "car" factory</span>
+<span class="n">mazda</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="s">"car"</span><span class="p">,</span> <span class="s">"mazda"</span><span class="p">)</span>
+
+
+<span class="c"># Create the default document from the "car" factory overriding the value for the "wheels" attribute</span>
+<span class="n">three_wheeler</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="s">"car"</span><span class="p">,</span> <span class="n">wheels</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+
+<span class="c"># Create a list of 5 cars</span>
+<span class="n">cars</span> <span class="o">=</span> <span class="n">create_list</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s">"car"</span><span class="p">)</span>
+
+
+<span class="c"># Create a list of 10 mazdas</span>
+<span class="n">mazdas</span> <span class="o">=</span> <span class="n">create_list</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s">"car"</span><span class="p">,</span> <span class="s">"mazda"</span><span class="p">)</span>
+
+
+<span class="c"># Create a list of 7 cars, overriding the "wheels" attribute on each</span>
+<span class="n">three_wheelers</span> <span class="o">=</span> <span class="n">build_list</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="s">"car"</span><span class="p">,</span> <span class="n">wheels</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+
+<h3>
+<a name="cleanup" class="anchor" href="#cleanup"><span class="octicon octicon-link"></span></a>Cleanup</h3>
+
+<p>Typically, test documents are created in the context of a unit test and are no longer of use after that test has completed. </p>
+
+<p>To ensure the created test documents are cleared up, use the <code>cleanup</code> method from you test's tearDown method:</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span> <span class="nn">monufacture</span> <span class="kn">import</span> <span class="n">create</span><span class="p">,</span> <span class="n">cleanup</span>
+
+
+<span class="k">class</span> <span class="nc">BlogpostTestCase</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">post</span> <span class="o">=</span> <span class="n">create</span><span class="p">(</span><span class="s">"blogpost"</span><span class="p">)</span>
+        <span class="c"># do some testing</span>
+
+    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+
+<h3>
+<a name="debugging" class="anchor" href="#debugging"><span class="octicon octicon-link"></span></a>Debugging</h3>
+
+<p>Monufacture has some basic debug logging which can be turned on from your test to aid debugging. </p>
+
+<div class="highlight highlight-python"><pre><span class="kn">import</span> <span class="nn">monufacture</span>
+
+<span class="n">monufacture</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="bp">True</span>
+</pre></div>
+
+<p>Debug logging currently outputs a log entry each time a document is created.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
