@@ -1,6 +1,6 @@
 # Monufacture
 
-Monufacture is a simple test data factory framework for Python which aims to make it as easy as possible to setup and teardown predictable test data in Mongo as part of testing functional code. 
+Monufacture is a simple test data factory framework for Python which aims to make it as easy as possible to setup and teardown predictable test data in Mongo as part of testing functional code.
 
 The API borrows heavily from Thoughtbot's excellent [factory_girl](https://github.com/thoughtbot/factory_girl) gem for Ruby.
 
@@ -23,16 +23,16 @@ To illustrate how to use Monufacture, let's imagine some dull application which 
 
 In order to perform this sort of testing, we usually need some suitable test data in the database in order to run a test. Monufacture helps you do this. Its API provides two related capabilities:
 
-1. The ability to declare, in a nice, readable format, how to construct test documents. 
+1. The ability to declare, in a nice, readable format, how to construct test documents.
 2. The ability to use these declared factories to effortlessly generate as many test documents as you need for your test.
 
 
-Going back to our blogging application, let's image our database is pretty simple and has two collections: `user`, which holds user account information, and `blogpost` which contains all the data associated with a given post. 
+Going back to our blogging application, let's image our database is pretty simple and has two collections: `user`, which holds user account information, and `blogpost` which contains all the data associated with a given post.
 
 If we wanted to use Monufacture to generate test data for this application, we'd start off by declaring factories something like this:
 
 ```python
-trait("timestamped", {                                              # Traits can be used to declare commonly 
+trait("timestamped", {                                              # Traits can be used to declare commonly
     "created":  ago(days=1),                                        # used document content which we want to mix
     "modified": date()                                              # into other documents.
 })
@@ -82,8 +82,8 @@ class BloggingTestCase(TestCase):
 
     def test_get(self):
         # Create a valid blogpost and its dependencies in the DB
-        blogpost = create("blogpost") 
-        
+        blogpost = create("blogpost")
+
         # Now we can test our application GET method
         response = app.get("/blogposts/{}".format(blogpost["_id"]))
         self.assertEquals(response.code, 200)
@@ -92,8 +92,8 @@ class BloggingTestCase(TestCase):
     def test_create(self):
         # Builds a new blogpost documents without saving it.
         # Here we're using the named "with_comments" document
-        new_post = build("blogpost", "with_comments") 
-        
+        new_post = build("blogpost", "with_comments")
+
         # Test our application POST method saves the new document
         response = app.post("/blogposts", new_post)
         self.assertEquals(response.code, 201)
@@ -102,7 +102,7 @@ class BloggingTestCase(TestCase):
     def test_index(self):
         # Creates 5 blogposts in the database
         blogposts = create_list(5, "blogpost")
-        
+
         # Test we can get all of them
         response = app.get('/blogposts')
         self.assertEquals(response.code, 200)
@@ -117,7 +117,7 @@ class BloggingTestCase(TestCase):
             urlencode("How I learnt to love Python")))
         self.assertEquals(response.code, 200)
         self.assertEquals(response.body['_id'], blogpost['_id'])
-    
+
     def tearDown(self):
         # Clean up any test documents we created in the database after each test
         cleanup()
@@ -127,14 +127,14 @@ class BloggingTestCase(TestCase):
 
 ## Factory Declaration
 
-Factories are declared by calling the `monufacture.factory()` method using a `with` block. 
+Factories are declared by calling the `monufacture.factory()` method using a `with` block.
 
 Each factory must be given a name and be provided with a PyMongo collection object which it will use to insert documents it creates.
 
 Inside the factory's `with` block, the structure and attributes of the documents it will generate are declared using the `default`, `document`, `trait` and `fragment` methods (described in more detail below):
 ```python
 from monufacture import factory, trait, embed, fragment, document, default
-from monugacture.helpers import date, ago, list_of, random_text
+from monufacture.helpers import date, ago, list_of, random_text
 
 
 with factory("vehicle", db.vehicles):   # All documents will be written to the "vehicles" collection in MongoDB.
@@ -179,7 +179,7 @@ with factory("vehicle", db.vehicles):   # All documents will be written to the "
 
 ### Documents
 
-Documents are declared within factories and are ultimately what factories build. Any number of named document structures may declared within a single factory (e.g. to test different scenarios) but all declared documents must be valid for Mongo collection associated with the factory. 
+Documents are declared within factories and are ultimately what factories build. Any number of named document structures may declared within a single factory (e.g. to test different scenarios) but all declared documents must be valid for Mongo collection associated with the factory.
 
 To declare a document, use the `document` method inside an enclosing `factory` declaration:
 ```python
@@ -256,7 +256,7 @@ Note:
 
 
 ### Traits
-Traits allow common sets field values to be declared separately and then "mixed in" to as many document declarations as needed. 
+Traits allow common sets field values to be declared separately and then "mixed in" to as many document declarations as needed.
 
 Traits may be declared globally so that they may be used within all factories, or scoped inside just one factory.
 
@@ -272,8 +272,8 @@ trait("timestamped", {
 })
 
 with factory("vehicle", db.vehicles):
-    
-    # Declare some reusable traits 
+
+    # Declare some reusable traits
     trait("honda", {"make": "Honda"})
     trait("bmw", {"make": "BMW"})
     trait("bike", {"wheels": 2})
@@ -403,7 +403,7 @@ document("user", {
 
 ### `dependent(fn)`
 
-Allows a dependent value to be dynamically generated from the value(s) of other attributes in the document. 
+Allows a dependent value to be dynamically generated from the value(s) of other attributes in the document.
 
 #### Arguments
 
@@ -436,7 +436,7 @@ You can also provide overrides to the document being created which can either be
 
 | Argument | Description |
 | -------- | ----------- |
-| `factory`  | The name of the factory to use to create the depended-on document. | 
+| `factory`  | The name of the factory to use to create the depended-on document. |
 | `document` | The named document within the factory to create. If not provided the default document is created. *Optional* |
 | `**overrides` | Override field values to be passed to the document being created. Values can be literals or functions. Functions are passed the current node (in a similar manner to the dependency helper) and must return a literal value.|
 
@@ -473,13 +473,13 @@ with factory("game", db.games):
 
 ### `dbref_to(factory, [document], **overrides)`
 
-Very similar to the `id_of` helper, only the inserted reference to the created document is a MongoDB DBRef structure rather than just an _id. 
+Very similar to the `id_of` helper, only the inserted reference to the created document is a MongoDB DBRef structure rather than just an _id.
 
 #### Arguments
 
 | Argument | Description |
 | -------- | ----------- |
-| `factory`  | The name of the factory to use to create the depended-on document. | 
+| `factory`  | The name of the factory to use to create the depended-on document. |
 | `document` | The named document within the factory to create. If not provided the default document is created. *Optional* |
 | `**overrides` | Override field values to be passed to the document being created. Values can be literals or functions. Functions are passed the current node (in a similar manner to the dependency helper) and must return a literal value.|
 
@@ -529,7 +529,7 @@ from monufacture.helpers import random_text
 
 document("blogpost", {
     "subject":  random_text(spaces=True, length=200),
-    "content":  random_text(spaces=True, length=1000, other_chars=["."] 
+    "content":  random_text(spaces=True, length=1000, other_chars=["."]
 })
 
 ```
@@ -563,21 +563,24 @@ document("user", {
 
 ---
 
-### `date([[[[[[[year], month], day], hour], minute], second], microsecond])`
+### `date([[[[[[[[year], month], day], hour], minute], second], microsecond], tz])`
 
-Inserts a datetime object set to the given time/date. If no arguments are provided, the current datetime is inserted.
+Inserts a datetime object set to the given time/date. If no arguments are provided, the current UTC datetime is inserted.
+
+Note: All created datetimes are timezone-aware and UTC by default. You can override this by providing an explicit `tz` string argument.
 
 #### Arguments
 
 | Argument | Description |
 | -------- | ----------- |
-| year          | The year. *Optional*        | 
-| month         | The month. *Optional*       | 
-| day           | The day. *Optional*         | 
-| hour          | The hour. *Optional*        | 
-| minute        | The minute. *Optional*      |     
-| second        | The second. *Optional*      |     
-| microsecond   | The microsecond. *Optional* |                 
+| year          | The year. *Optional*        |
+| month         | The month. *Optional*       |
+| day           | The day. *Optional*         |
+| hour          | The hour. *Optional*        |
+| minute        | The minute. *Optional*      |
+| second        | The second. *Optional*      |
+| microsecond   | The microsecond. *Optional* |
+| tz            | The IANA timezone of the given time. *Optional* |
 
 #### Example
 ```python
@@ -585,8 +588,8 @@ from monufacture.helpers import date
 
 
 document("blogpost", {
-    "published":        date(2010, 2, 3, 4, 5, 6),  # A specific date
-    "last_viewed":      date()                      # Right now
+    "published":        date(2010, 2, 3, 4, 5, 6, tz='Asia/Kuwait'),  # A specific date
+    "last_viewed":      date()                                        # Right now (UTC)
 })
 
 ```
@@ -595,7 +598,7 @@ document("blogpost", {
 
 ### `now()`
 
-Inserts the current datetime. This is essentially the same as using the `date()` helper with no arguments.
+Inserts the current datetime. This is essentially the same as using the `date()` helper with no arguments. The given datetime is timezone-aware and in UTC.
 
 #### Example
 ```python
@@ -612,19 +615,19 @@ document("blogpost", {
 
 ### `ago([[[[[[[years], months], days], hours], minutes], seconds], microseconds])`
 
-Inserts a datetime set to a date and time a given period before the current date time. Remember, this helper is evaluated at build time, not declaration time. 
+Inserts a datetime set to a date and time a given period before the current date time. Remember, this helper is evaluated at build time, not declaration time. The given datetime is timezone-aware and in UTC.
 
 #### Arguments
 
 | Argument | Description |
 | -------- | ----------- |
-| years        | The years to include in the delta. *Optional*        | 
-| months       | The months to include in the delta. *Optional*       | 
-| days         | The days to include in the delta. *Optional*         | 
-| hours        | The hours to include in the delta. *Optional*        | 
-| minutes      | The minutes to include in the delta. *Optional*      |     
-| seconds      | The seconds to include in the delta. *Optional*      |     
-| microseconds | The microseconds to include in the delta. *Optional* | 
+| years        | The years to include in the delta. *Optional*        |
+| months       | The months to include in the delta. *Optional*       |
+| days         | The days to include in the delta. *Optional*         |
+| hours        | The hours to include in the delta. *Optional*        |
+| minutes      | The minutes to include in the delta. *Optional*      |
+| seconds      | The seconds to include in the delta. *Optional*      |
+| microseconds | The microseconds to include in the delta. *Optional* |
 
 #### Example
 ```python
@@ -640,19 +643,19 @@ document("blogpost", {
 
 ### `from_now([[[[[[[years], months], days], hours], minutes], seconds], microseconds])`
 
-Inserts a datetime set to a date and time a given period after the current date time. Remember, this helper is evaluated at build time, not declaration time. 
+Inserts a datetime set to a date and time a given period after the current date time. Remember, this helper is evaluated at build time, not declaration time. The given datetime is timezone-aware and in UTC.
 
 #### Arguments
 
 | Argument | Description |
 | -------- | ----------- |
-| years        | The years to include in the delta. *Optional*        | 
-| months       | The months to include in the delta. *Optional*       | 
-| days         | The days to include in the delta. *Optional*         | 
-| hours        | The hours to include in the delta. *Optional*        | 
-| minutes      | The minutes to include in the delta. *Optional*      |     
-| seconds      | The seconds to include in the delta. *Optional*      |     
-| microseconds | The microseconds to include in the delta. *Optional* | 
+| years        | The years to include in the delta. *Optional*        |
+| months       | The months to include in the delta. *Optional*       |
+| days         | The days to include in the delta. *Optional*         |
+| hours        | The hours to include in the delta. *Optional*        |
+| minutes      | The minutes to include in the delta. *Optional*      |
+| seconds      | The seconds to include in the delta. *Optional*      |
+| microseconds | The microseconds to include in the delta. *Optional* |
 
 #### Example
 ```python
@@ -668,7 +671,7 @@ document("credit_card", {
 
 ### `list_of(fn, length)`
 
-Used to insert a list of the given length containing the results of invoking a given other helper multiple times. Can be used together with the `embed` helper to insert multiple copies of a fragment as an embedded collection. 
+Used to insert a list of the given length containing the results of invoking a given other helper multiple times. Can be used together with the `embed` helper to insert multiple copies of a fragment as an embedded collection.
 
 #### Arguments
 
@@ -697,7 +700,7 @@ document("team", {
 
 ### `object_id()`
 
-Generates and inserts a new BSON ObjectId at build time. 
+Generates and inserts a new BSON ObjectId at build time.
 
 #### Example
 ```python
@@ -714,7 +717,7 @@ document("blogpost", {
 
 ### `union(*fns)`
 
-Allows the list output of other helper function calls (e.g. `list_of`) to be unioned into a single list at build time. 
+Allows the list output of other helper function calls (e.g. `list_of`) to be unioned into a single list at build time.
 
 #### Arguments
 
@@ -745,7 +748,7 @@ document("team", {
 
 ### `one_of(*values)`
 
-Allows a list of possible value to be provided for a field. At build time one of the supplied values will be picked at random and inserted. 
+Allows a list of possible value to be provided for a field. At build time one of the supplied values will be picked at random and inserted.
 
 #### Arguments
 
@@ -767,7 +770,7 @@ document("user", {
 
 ## Writing Custom Helpers
 
-As well as the out-of-the-box helpers documented in the previous section, you are of course free to implement your own custom helpers to meet the needs of you specific business domain. 
+As well as the out-of-the-box helpers documented in the previous section, you are of course free to implement your own custom helpers to meet the needs of you specific business domain.
 
 Implementing a custom helper couldn't be easier. A helper is just a function that accepts whatever specific arguments it needs and returns a function to be called at build time which should return the actual value to be inserted in the document. The returned function should accept the document as its only argument.
 
@@ -819,12 +822,12 @@ three_wheelers = build_list(7, "car", wheels=3)
 
 ```
 Note:
- - Overrides will be inserted into the document whether the given attribute already exists or not. 
+ - Overrides will be inserted into the document whether the given attribute already exists or not.
 
 
 ### Creating Documents
 
-The API for "creating" document is essentially identical to that for "building", the only difference is that when creating a document, it is inserted into the MongoDB collection associated with the factory and is given an `_id`. 
+The API for "creating" document is essentially identical to that for "building", the only difference is that when creating a document, it is inserted into the MongoDB collection associated with the factory and is given an `_id`.
 
 ```python
 from monufacture import create, create_list
@@ -856,7 +859,7 @@ three_wheelers = build_list(7, "car", wheels=3)
 
 ### Cleanup
 
-Typically, test documents are created in the context of a unit test and are no longer of use after that test has completed. 
+Typically, test documents are created in the context of a unit test and are no longer of use after that test has completed.
 
 To ensure the created test documents are cleared up, use the `cleanup` method from you test's tearDown method:
 
@@ -866,7 +869,7 @@ from monufacture import create, cleanup
 
 
 class BlogpostTestCase(TestCase):
-    
+
     def test_something(self):
         post = create("blogpost")
         # do some testing
@@ -877,7 +880,7 @@ class BlogpostTestCase(TestCase):
 
 ### Debugging
 
-Monufacture has some basic debug logging which can be turned on from your test to aid debugging. 
+Monufacture has some basic debug logging which can be turned on from your test to aid debugging.
 
 ```python
 import monufacture

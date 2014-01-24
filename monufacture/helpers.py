@@ -1,6 +1,7 @@
 import monufacture
 import string
 import random
+from pytz import timezone
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
 
@@ -65,7 +66,7 @@ def text(*args, **kwargs):
     return random_text(*args, **kwargs)
 
 
-def random_text(length=10, spaces=False, digits=False, upper=True, 
+def random_text(length=10, spaces=False, digits=False, upper=True,
                 lower=True, other_chars=[]):
     """Inserts some random text of the given length into the document."""
 
@@ -89,7 +90,7 @@ def random_text(length=10, spaces=False, digits=False, upper=True,
 def dbref_to(factory, document=None, **overrides):
     """Create a DBRef-type subdoc structure linking to a new instance of the
     given named factory type."""
-    
+
     def build(*args):
         return {
             "$id": monufacture.create(factory, document, **overrides)["_id"],
@@ -98,7 +99,7 @@ def dbref_to(factory, document=None, **overrides):
     return build
 
 
-def date(year=None, month=None, day=None, hour=None, minute=None, second=None, microsecond=None):
+def date(year=None, month=None, day=None, hour=None, minute=None, second=None, microsecond=None, tz=None):
     """Returns a function to generate the current datetime for insertion into a document.
     Components of the date/time can be provided as overrides."""
 
@@ -112,21 +113,24 @@ def date(year=None, month=None, day=None, hour=None, minute=None, second=None, m
             return out
 
         dt_args = compact_args(
-            year=year, 
-            month=month, 
-            day=day, 
-            hour=hour, 
-            minute=minute, 
-            second=second, 
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=second,
             microsecond=microsecond)
 
         def build_specific(*args):
-            return datetime(**dt_args)
+            dt = datetime(**dt_args)
+            if tz:
+                dt = timezone(tz).localize(dt)
+            return dt
 
         return build_specific
 
     def build_now(*args):
-        return datetime.now()
+        return datetime.utcnow()
     return build_now
 
 
@@ -149,11 +153,11 @@ def _convert_years_months_to_days(timedeltas):
         del timedeltas['years']
 
 def ago(**kwargs):
-    """Returns a function to generate a datetime a time delta in the past from the 
+    """Returns a function to generate a datetime a time delta in the past from the
     time at which it is run."""
     def build(*args):
         _convert_years_months_to_days(kwargs)
-        return datetime.now() - timedelta(**kwargs)
+        return datetime.utcnow() - timedelta(**kwargs)
 
     return build
 
@@ -163,7 +167,7 @@ def from_now(**kwargs):
     time at which it is run."""
     def build(*args):
         _convert_years_months_to_days(kwargs)
-        return datetime.now() + timedelta(**kwargs)
+        return datetime.utcnow() + timedelta(**kwargs)
 
     return build
 

@@ -1,9 +1,10 @@
 from freezegun import freeze_time
+import calendar
 import unittest
 import monufacture.dynamic
 from monufacture.helpers import (
-    sequence, dependent, id_of, text, random_text, dbref_to, date, 
-    now, ago, from_now, list_of, object_id, union, one_of, 
+    sequence, dependent, id_of, text, random_text, dbref_to, date,
+    now, ago, from_now, list_of, object_id, union, one_of,
     random_number, number)
 from mock import patch, Mock, call
 from datetime import datetime
@@ -74,7 +75,7 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(
             [call("bob", "dave", sandwich="ham"), call("bob", "dave", sandwich="cheese")],
             create.mock_calls)
-        
+
 
     @patch('monufacture.helpers.random_text')
     def test_text(self, random_text):
@@ -82,7 +83,7 @@ class TestHelperFunctions(unittest.TestCase):
                     spaces=True, other_chars=["."])
         self.assertIsNotNone(func())
         random_text.assert_called_with(
-            length=1, lower=True, upper=True, digits=True, 
+            length=1, lower=True, upper=True, digits=True,
             spaces=True, other_chars=["."])
 
     def test_random_text(self):
@@ -163,68 +164,88 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual({"$id": 1234, "$ref": "users"}, func())
         create.assert_called_with("user", "bob", foo="bar")
 
+    def assert_timestamp_equal(self, timestamp, dt):
+        """Asserts that the given datetime matches the given time stamp"""
+        self.assertEqual(timestamp, calendar.timegm(dt.utctimetuple()))
 
-    @freeze_time('2012-01-14 03:21:34')
-    def test_date_now(self):
+    @freeze_time('2012-01-14 03:21:34', tz_offset=-8)
+    def test_date_now_different_tz(self):
         func = date()
         d = func()
-        self.assertEqual(datetime(2012, 1, 14, 3, 21, 34), d)
+        self.assert_timestamp_equal(1326511294, d)
 
     @freeze_time('2012-01-14 03:21:34')
     def test_now(self):
         func = now()
         d = func()
-        self.assertEqual(datetime(2012, 1, 14, 3, 21, 34), d)
+        self.assert_timestamp_equal(1326511294, d)
+
+    @freeze_time('2012-01-14 03:21:34')
+    def test_date_now(self):
+        func = date()
+        d = func()
+        self.assert_timestamp_equal(1326511294, d)
+
+    @freeze_time('2012-01-14 03:21:34', tz_offset=-8)
+    def test_now_different_tz(self):
+        func = now()
+        d = func()
+        self.assert_timestamp_equal(1326511294, d)
 
     def test_date_specified(self):
         func = date(2013, 1, 2, 3, 4, 5, 6)
         d = func()
-        self.assertEqual(datetime(2013, 1, 2, 3, 4, 5, 6), d)
+        self.assert_timestamp_equal(1357095845, d)
 
     def test_date_specified_with_just_minutes(self):
         func = date(2013, 1, 2, minute=40)
         d = func()
-        self.assertEqual(datetime(2013, 1, 2, 0, 40, 0, 0), d)
+        self.assert_timestamp_equal(1357087200, d)
+
+    def test_date_specified_with_tz_offset(self):
+        func = date(2013, 1, 2, 3, 4, 5, 6, tz='Asia/Kuwait')
+        d = func()
+        self.assert_timestamp_equal(1357085045, d)
 
     def test_valueerror_when_incomplete_date(self):
         with self.assertRaises(ValueError):
             date(2013, 1)
 
-    @freeze_time('2012-01-14 03:21:34')
+    @freeze_time('2012-01-14 03:21:34', tz_offset=-8)
     def test_5_minutes_ago(self):
         func = ago(minutes=5)
         d = func()
-        self.assertEqual(datetime(2012, 1, 14, 3, 16, 34), d)
+        self.assert_timestamp_equal(1326510994, d)
 
-    @freeze_time('2012-01-14 03:21:34')
+    @freeze_time('2012-01-14 03:21:34', tz_offset=-8)
     def test_2_days_50_seconds_ago(self):
         func = ago(days=2, seconds=50)
         d = func()
-        self.assertEqual(datetime(2012, 1, 12, 3, 20, 44), d)
+        self.assert_timestamp_equal(1326338444, d)
 
-    @freeze_time('2012-01-14 03:21:34')
+    @freeze_time('2012-01-14 03:21:34', tz_offset=-8)
     def test_1_year_3_months_ago(self):
         func = ago(years=1, months=3)
         d = func()
-        self.assertEqual(datetime(2010, 10, 16, 3, 21, 34), d)
+        self.assert_timestamp_equal(1287199294, d)
 
-    @freeze_time('2012-01-14 03:21:34')
+    @freeze_time('2012-01-14 03:21:34', tz_offset=-8)
     def test_5_minutes_from_now(self):
         func = from_now(minutes=5)
         d = func()
-        self.assertEqual(datetime(2012, 1, 14, 3, 26, 34), d)
+        self.assert_timestamp_equal(1326511594, d)
 
-    @freeze_time('2012-01-14 03:21:34')
+    @freeze_time('2012-01-14 03:21:34', tz_offset=-8)
     def test_2_days_50_seconds_from_now(self):
         func = from_now(days=2, seconds=50)
         d = func()
-        self.assertEqual(datetime(2012, 1, 16, 3, 22, 24), d)
+        self.assert_timestamp_equal(1326684144, d)
 
-    @freeze_time('2012-01-14 03:21:34')
+    @freeze_time('2012-01-14 03:21:34', tz_offset=-8)
     def test_1_year_3_months_from_now(self):
         func = from_now(years=1, months=3)
         d = func()
-        self.assertEqual(datetime(2013, 4, 13, 3, 21, 34), d)
+        self.assert_timestamp_equal(1365823294, d)
 
     def test_list_of(self):
         func = lambda x: x

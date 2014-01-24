@@ -14,5 +14,5 @@ setuptools.setup(
                      "it as easy as possible to generate valid test data in MongoDB. " +
                      "Inspired by the excellent factory_girl Ruby Gem.",
     install_requires=['pymongo'],
-    tests_require=['mock', 'nose', 'freezegun']
+    tests_require=['mock', 'nose', 'freezegun', 'pytz']
 )
