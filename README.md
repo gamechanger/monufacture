@@ -346,6 +346,21 @@ with factory("vehicle", db.vehicles):
     }, traits=["preowned"])
 ```
 
+...and fragments have themselves can have traits:
+```python
+with factory("vehicle", db.vehicles):
+    trait("identified", {
+        "id":               object_id()
+    })
+
+    # Declare an "owner" fragment we can use in multiple places
+    fragment("owner", {
+        "name":             random_text(),
+        "purchased":        ago(weeks=random_number(max=200))
+    }, traits=["identified"])
+
+```
+
 Fragments also support inheritance in the same manner as documents:
 ```python
 with factory("vehicle", db.vehicles):
@@ -360,6 +375,44 @@ with factory("vehicle", db.vehicles):
     }, parent="identity")
 
 ```
+
+When you embed a fragment in another document, fragment or trait, you can also provide a list of further traits inline. This is useful if you want to combine traits in various combinations and don't need/want to declare a bunch of fragments just for this purpose.
+
+```python
+with factory("vehicle", db.vehicles):
+    trait("pirelli", {
+        "make":     "pirelli",
+        "warranty": 3
+    })
+
+    trait("bridgestone", {
+        "make":     "bridgestone",
+        "warranty": 5
+    })
+
+    trait("large", {
+        "inches": 20
+    })
+
+    trait("medium", {
+        "inches": 16
+    })
+
+    trait("small", {
+        "inches": 14
+    })
+
+    # Now declare a document where we use the "owner" fragment to
+    # embed details of a current owner and a list of previous owners.
+    default({
+        "make":             random_text(),
+        "model":            random_text(),
+        "tire_options":     [embed("tire", traits=[make, size])
+                             for make in ["pirelli", "bridgestone"]
+                             for size in ["large", "medium", "small"]]
+    })
+```
+
 
 Notes:
  - Fragments must be declared inside the scope of a `with factory():` block. Global fragments are not supported.

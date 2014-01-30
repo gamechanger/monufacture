@@ -34,7 +34,7 @@ class Factory(object):
         for trait in traits:
             doc.update(self._build_trait(trait))
 
-    def _build_fragment(self, name):
+    def _build_fragment(self, name, inline_traits=[]):
         fragment = self.fragments[name]
         if fragment.parent:
             spec = self._build_fragment(fragment.parent)
@@ -43,6 +43,9 @@ class Factory(object):
 
         if fragment.traits:
             self._apply_traits(spec, fragment.traits)
+
+        if inline_traits:
+            self._apply_traits(spec, inline_traits)
 
         spec.update(fragment.attrs)
         return spec
@@ -121,11 +124,22 @@ class Factory(object):
         self.traits[name] = Trait(attrs, parent)
 
     def fragment(self, name, attrs=None, parent=None, traits=[]):
+        """
+        Declares a reusable fragment which can be embedded in a document (or
+        another fragment or trait) using the `embed` function.
+        """
         self.fragments[name] = Fragment(attrs or {}, parent, traits)
 
-    def embed(self, name):
+    def embed(self, name, traits=[]):
+        """
+        Returns a helper function which embeds an instance of the given
+        fragment in the document at build time. If a list of traits is
+        provided, these are dynamically applied to the fragment on
+        creation on top of any other traits declared with the fragment
+        itself.
+        """
         def build(*args):
-            return self._build_fragment(name)
+            return self._build_fragment(name, traits)
 
         return build
 

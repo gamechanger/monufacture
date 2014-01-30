@@ -451,6 +451,29 @@ class TestFactory(unittest.TestCase):
             }
         })
 
+    def test_embed_fragment_with_inline_trait(self):
+        factory = Factory(self.collection)
+        factory.trait('versioned', {"v": 5})
+        factory.trait('sms', {"sms": True})
+        factory.fragment("alert_prefs", {
+            "emails": True
+        }, traits=['versioned'])
+        factory.document("user", {
+            "first_name": 'John',
+            "last_name": 'Smith',
+            "age": 32,
+            "alerts": factory.embed("alert_prefs", traits=["sms"])
+        })
+        self.assertDictEqual(factory.build("user"), {
+            "first_name": "John",
+            "last_name": "Smith",
+            "age": 32,
+            "alerts": {
+                "emails": True,
+                "v": 5,
+                "sms": True
+            }
+        })
 
     def test_create_simple(self):
         to_return = {
