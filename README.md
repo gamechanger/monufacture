@@ -380,12 +380,6 @@ When you embed a fragment in another document, fragment or trait, you can also p
 
 ```python
 with factory("vehicle", db.vehicles):
-    # Declare an "owner" fragment we can use in multiple places
-    fragment("owner", {
-        "name":             random_text(),
-        "purchased":        ago(weeks=random_number(max=200))
-    })
-
     trait("pirelli", {
         "make":     "pirelli",
         "warranty": 3
