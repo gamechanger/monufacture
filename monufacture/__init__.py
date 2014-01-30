@@ -52,8 +52,8 @@ def fragment(name, attrs=None, parent=None, traits=[]):
     _get_active_factory().fragment(name, attrs, parent, traits)
 
 
-def embed(name):
-    return _get_active_factory().embed(name)
+def embed(name, traits=[]):
+    return _get_active_factory().embed(name, traits)
 
 
 # Methods to create document instances using factories
@@ -63,7 +63,7 @@ def create(factory_, document_=None, **overrides):
     overrides, storing the instance in the database."""
     doc = factories[factory_].create(document_, **overrides)
     if debug:
-        logging.debug("CREATED [%s]: %s, document=%s, overrides=%s", 
+        logging.debug("CREATED [%s]: %s, document=%s, overrides=%s",
                       doc['_id'], factory_, document_, overrides)
     return doc
 
@@ -76,26 +76,26 @@ def build(factory_, document_=None, **overrides):
 
 
 def build_list(count_, factory_, document_=None, **overrides):
-    """Builds a list of `count_` instances of the named document using the 
+    """Builds a list of `count_` instances of the named document using the
     associated factory."""
     return [build(factory_, document_, **overrides) for x in range(count_)]
 
 
 def create_list(count_, factory_, document_=None, **overrides):
-    """Creates a list of `count_` instances of the named document using the 
+    """Creates a list of `count_` instances of the named document using the
     associated factory."""
     return [create(factory_, document_, **overrides) for x in range(count_)]
 
 
 # Cleanup methods
 def cleanup():
-    """Cleans up all factory data generated since the process was started, 
+    """Cleans up all factory data generated since the process was started,
     or since the last time this method was called."""
     for factory in factories.itervalues():
         factory.cleanup()
 
 def reset():
-    """Resets Monufacturer, removing all registered factories. Only really 
+    """Resets Monufacturer, removing all registered factories. Only really
     here for testing purposes."""
     cleanup()
     factories.clear()
