@@ -342,7 +342,7 @@ with factory("vehicle", db.vehicles):
     default({
         "make":             random_text(),
         "model":            random_text(),
-        "current_owner":    embed("owner", purchased=date())
+        "current_owner":    embed("owner")
     }, traits=["preowned"])
 ```
 
