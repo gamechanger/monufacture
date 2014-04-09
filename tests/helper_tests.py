@@ -9,6 +9,7 @@ from monufacture.helpers import (
 from mock import patch, Mock, call
 from datetime import datetime
 from bson.objectid import ObjectId
+from bson.dbref import DBRef
 
 # Reload monufacture to ensure we're testing against the
 # freezegun-patched version of datetime.
@@ -134,8 +135,8 @@ class TestHelperFunctions(unittest.TestCase):
         factory.collection.name = "users"
         get_factory.return_value = factory
         create.return_value = {"_id": 1234}
-        func = dbref_to("user")
-        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        dbref = dbref_to("user")()
+        self.assertEqual(DBRef("users", 1234), dbref)
         create.assert_called_with("user", None)
 
 
@@ -147,8 +148,8 @@ class TestHelperFunctions(unittest.TestCase):
         factory.collection.name = "users"
         get_factory.return_value = factory
         create.return_value = {"_id": 1234}
-        func = dbref_to("user", "bob")
-        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        dbref = dbref_to("user", "bob")()
+        self.assertEqual(DBRef("users", 1234), dbref)
         create.assert_called_with("user", "bob")
 
 
@@ -160,8 +161,8 @@ class TestHelperFunctions(unittest.TestCase):
         factory.collection.name = "users"
         get_factory.return_value = factory
         create.return_value = {"_id": 1234}
-        func = dbref_to("user", "bob", foo="bar")
-        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        dbref = dbref_to("user", "bob", foo="bar")()
+        self.assertEqual(DBRef("users", 1234), dbref)
         create.assert_called_with("user", "bob", foo="bar")
 
     def assert_timestamp_equal(self, timestamp, dt):
