@@ -135,7 +135,8 @@ class TestHelperFunctions(unittest.TestCase):
         get_factory.return_value = factory
         create.return_value = {"_id": 1234}
         func = dbref_to("user")
-        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        dbref = func()
+        self.assertEqual({"$id": 1234, "$ref": "users"}, {'$id': dbref.id, '$ref': dbref.collection})
         create.assert_called_with("user", None)
 
 
@@ -148,7 +149,8 @@ class TestHelperFunctions(unittest.TestCase):
         get_factory.return_value = factory
         create.return_value = {"_id": 1234}
         func = dbref_to("user", "bob")
-        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        dbref = func()
+        self.assertEqual({"$id": 1234, "$ref": "users"}, {'$id': dbref.id, '$ref': dbref.collection})
         create.assert_called_with("user", "bob")
 
 
@@ -161,7 +163,8 @@ class TestHelperFunctions(unittest.TestCase):
         get_factory.return_value = factory
         create.return_value = {"_id": 1234}
         func = dbref_to("user", "bob", foo="bar")
-        self.assertEqual({"$id": 1234, "$ref": "users"}, func())
+        dbref = func()
+        self.assertEqual({"$id": 1234, "$ref": "users"}, {'$id': dbref.id, '$ref': dbref.collection})
         create.assert_called_with("user", "bob", foo="bar")
 
     def assert_timestamp_equal(self, timestamp, dt):
