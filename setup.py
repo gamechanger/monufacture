@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="Monufacture",
-    version="0.3.3",
+    version="1.0.0",
     author="Tom Leach",
     author_email="tom@gc.io",
     description="A lightweight factory framework for easily generating test data in MongoDB",
