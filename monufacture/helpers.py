@@ -4,6 +4,7 @@ import random
 from pytz import timezone
 from datetime import datetime, timedelta
 from bson.objectid import ObjectId
+from bson.dbref import DBRef
 
 """Contains setter functions designed to be used inline with
 factory definitions to inject dynamic values into models as
@@ -90,13 +91,17 @@ def random_text(length=10, spaces=False, digits=False, upper=True,
 def dbref_to(factory, document=None, **overrides):
     """Create a DBRef-type subdoc structure linking to a new instance of the
     given named factory type."""
+    raise
+    collection = monufacture.get_factory(factory).collection.name
+    _id = monufacture.create(factory, document, **overrides)["_id"]
+    return DBRef(collection, _id)
 
-    def build(*args):
-        return {
-            "$id": monufacture.create(factory, document, **overrides)["_id"],
-            "$ref": monufacture.get_factory(factory).collection.name
-        }
-    return build
+    # def build(*args):
+    #     return {
+    #         "$id": monufacture.create(factory, document, **overrides)["_id"],
+    #         "$ref": monufacture.get_factory(factory).collection.name
+    #     }
+    # return build
 
 
 def date(year=None, month=None, day=None, hour=None, minute=None, second=None, microsecond=None, tz=None):
