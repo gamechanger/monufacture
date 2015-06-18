@@ -6,6 +6,8 @@ The API borrows heavily from Thoughtbot's excellent [factory_girl](https://githu
 
 [![build status](https://travis-ci.org/gamechanger/monufacture.png?branch=master "Build status")](https://travis-ci.org/gamechanger/monufacture)
 
+[![Github License](https://img.shields.io/github/license/gamechanger/monufacture.svg)](https://github.com/gamechanger/monufacture/blob/master/LICENSE)
+
 # Installation
 
 Install via easy_install:
