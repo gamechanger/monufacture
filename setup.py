@@ -13,6 +13,6 @@ setuptools.setup(
     long_description="Monufacture is a factory framework with an API designed to make " +
                      "it as easy as possible to generate valid test data in MongoDB. " +
                      "Inspired by the excellent factory_girl Ruby Gem.",
-    install_requires=['pymongo>=3.0.0', 'pytz'],
+    install_requires=['pymongo>=3.0.0,<4.0.0', 'pytz'],
     tests_require=['mock', 'nose', 'freezegun']
 )
