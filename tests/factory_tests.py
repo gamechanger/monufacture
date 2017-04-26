@@ -499,7 +499,7 @@ class TestFactory(unittest.TestCase):
             "first_name": "John",
             "last_name": "Smith",
             "age": 32
-        }, safe=True)
+        })
         self.collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)
 
@@ -527,7 +527,7 @@ class TestFactory(unittest.TestCase):
             "first_name": "Mike",
             "last_name": "Smith",
             "age": 32
-        }, safe=True)
+        })
         self.collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)
 
@@ -543,7 +543,7 @@ class TestFactory(unittest.TestCase):
         factory = Factory(self.collection)
         factory.default({})
         factory.create(**scary_overrides)
-        self.collection.insert.assert_called_with(scary_overrides, safe=True)
+        self.collection.insert.assert_called_with(scary_overrides)
 
 
     def test_create_with_additional_fields(self):
@@ -572,7 +572,7 @@ class TestFactory(unittest.TestCase):
             "last_name": "Smith",
             "age": 32,
             "gender": "male"
-        }, safe=True)
+        })
         self.collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)
 
@@ -639,7 +639,7 @@ class TestFactory(unittest.TestCase):
             "last_name": "Smith",
             "age": 45,
             "gender": "male"
-        }, safe=True)
+        })
         self.collection.find_one.assert_called_with(to_return["_id"])
         self.assertDictEqual(created, to_return)
 
@@ -685,7 +685,7 @@ class TestFactory(unittest.TestCase):
 
         factory.cleanup()
 
-        expected_calls = [call(oid, safe=True) for oid in cleanup_ids]
+        expected_calls = [call(oid) for oid in cleanup_ids]
         self.assertEqual(self.collection.remove.mock_calls, expected_calls)
         self.collection.reset_mock()
         factory.cleanup()
