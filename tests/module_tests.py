@@ -5,11 +5,11 @@ from monufacture import factory, trait, default, document, fragment, embed, buil
 from monufacture.helpers import dependent, sequence, id_of
 from mock import Mock, patch, ANY
 from bson.objectid import ObjectId
-from pymongo.connection import Connection
+from pymongo import MongoClient
 
 host = os.environ.get("DB_IP", "localhost")
 port = int(os.environ.get("DB_PORT", 27017))
-conn = Connection(host, port).monufacture_test
+conn = MongoClient(host, port).monufacture_test
 
 class TestDeclaration(TestCase):
     """Tests for "declaration"-type methods which allow factories to
@@ -31,7 +31,7 @@ class TestDeclaration(TestCase):
             fragment("test", {"a": "b"})
 
 class TestGeneration(TestCase):
-    """Tests for "generation"-type methods - those which create new 
+    """Tests for "generation"-type methods - those which create new
     document instances using registered factories."""
     def setUp(self):
         self.company_id = ObjectId()
@@ -52,7 +52,7 @@ class TestGeneration(TestCase):
 
             fragment("prefs_sms", {
                 "receives_sms": False,
-                "receives_email": True                
+                "receives_email": True
             }, traits=['versioned'])
 
             fragment("empty_prefs", traits=['versioned'])
@@ -81,7 +81,7 @@ class TestGeneration(TestCase):
                 "age": sequence(lambda n: n + 20)
             }, parent="timestamped")
 
-        
+
         with factory("company", self.company_collection):
             default({
                 "name": "GloboCorp"
@@ -177,7 +177,7 @@ class TestGeneration(TestCase):
         self.assertEquals(doc2, expected2)
 
     def test_create(self):
-        
+
         created = create("user", first='Mike')
 
         expected = {
@@ -194,7 +194,7 @@ class TestGeneration(TestCase):
             "created": "now"
         }
 
-        self.assertDictContainsSubset(expected, created)        
+        self.assertDictContainsSubset(expected, created)
 
     def test_create_named_document(self):
         created = create("user", "admin", first='Mike')
@@ -214,7 +214,7 @@ class TestGeneration(TestCase):
             "v": 4
         }
 
-        self.assertDictContainsSubset(expected, created)        
+        self.assertDictContainsSubset(expected, created)
 
     def test_build_list(self):
         expected_list = [{
@@ -394,9 +394,9 @@ class TestGeneration(TestCase):
             "age": 23,
             "created": "now"
         }]
-        
+
         created_docs = create_list(3, "user")
-        
+
         for created, expected in zip(created_docs, expected_docs):
             self.assertDictContainsSubset(expected, created)
 
@@ -441,7 +441,7 @@ class TestGeneration(TestCase):
             "created": "now",
             "v": 4
         }]
-        
+
         created_list = create_list(3, "user", "admin")
 
         for expected, actual in zip(expected_docs, created_list):
@@ -520,7 +520,7 @@ class TestGeneration(TestCase):
 
         def check_log(factory, document=None, **overrides):
             debug.assert_called_once_with(
-                "CREATED [%s]: %s, document=%s, overrides=%s", 
+                "CREATED [%s]: %s, document=%s, overrides=%s",
                 ANY, factory, document, overrides)
             debug.reset_mock()
 
@@ -532,4 +532,3 @@ class TestGeneration(TestCase):
         check_log('company', thing='blah')
         create_list(1, 'company', 'pharma', thing='blah')
         check_log('company', 'pharma', thing='blah')
-

@@ -1,5 +1,5 @@
 import os
-from pymongo.connection import Connection
+from pymongo import MongoClient
 from unittest import TestCase, TestLoader, TestResult
 from monufacture import factory, create, create_list, reset, default
 from monufacture.unittest import enable_factories
@@ -8,7 +8,7 @@ from monufacture.helpers import dependent, sequence, id_of
 host = os.environ.get("DB_IP", "localhost")
 port = int(os.environ.get("DB_PORT", 27017))
 
-conn = Connection(host, port).monufacture_test
+conn = MongoClient(host, port).monufacture_test
 company_collection = conn.company
 user_collection = conn.user
 
@@ -45,7 +45,7 @@ class TestUnittestSupport(TestCase):
                 "email": dependent(lambda doc: "%s.%s@test.com" % (doc['first'], doc['last'])),
                 "age": sequence(lambda n: n + 20)
             })
-        
+
         with factory("company", company_collection):
             default({
                 "name": "GloboCorp"
